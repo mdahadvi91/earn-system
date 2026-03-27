@@ -37,4 +37,5 @@ app.post("/reward", (req, res) => {
   res.json({ success: true });
 });
 
+require("./bot");
 app.listen(3000, () => console.log("Server running..."));
