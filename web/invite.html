@@ -1,0 +1,59 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Invite & Earn</title>
+
+<style>
+body{
+  margin:0;
+  font-family:sans-serif;
+  background:#020617;
+  color:#fff;
+  text-align:center;
+}
+
+.card{
+  margin:20px;
+  padding:20px;
+  border-radius:20px;
+  background:rgba(255,255,255,0.05);
+}
+
+.btn{
+  padding:15px;
+  margin-top:20px;
+  display:block;
+  background:#22c55e;
+  color:#fff;
+  border-radius:10px;
+  text-decoration:none;
+}
+</style>
+</head>
+
+<body>
+
+<h2>👥 Invite & Earn</h2>
+
+<div class="card">
+  <p>Your Referral Link:</p>
+  <p id="link"></p>
+  <a class="btn" onclick="copy()">📋 Copy Link</a>
+</div>
+
+<script>
+let user = localStorage.getItem("uid");
+let link = "https://t.me/YOUR_BOT_USERNAME?start=" + user;
+
+document.getElementById("link").innerText = link;
+
+function copy(){
+  navigator.clipboard.writeText(link);
+  alert("Copied!");
+}
+</script>
+
+</body>
+</html>
