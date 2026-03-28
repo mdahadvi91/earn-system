@@ -1,0 +1,78 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Leaderboard</title>
+
+<style>
+body{
+  background:#020617;
+  color:#fff;
+  font-family:sans-serif;
+  padding:15px;
+}
+
+.card{
+  background: rgba(255,255,255,0.05);
+  padding:15px;
+  border-radius:15px;
+  margin-bottom:10px;
+}
+
+.top{
+  font-size:18px;
+  font-weight:bold;
+}
+</style>
+</head>
+
+<body>
+
+<h2>🏆 Leaderboard</h2>
+
+<button onclick="loadAll()">All Time</button>
+<button onclick="loadDaily()">Today</button>
+
+<div id="list"></div>
+
+<script>
+const API="https://earn-system.onrender.com";
+let user=localStorage.getItem("uid");
+
+function loadAll(){
+fetch(API+"/leaderboard")
+.then(r=>r.json())
+.then(show);
+}
+
+function loadDaily(){
+fetch(API+"/leaderboard/daily")
+.then(r=>r.json())
+.then(show);
+}
+
+function show(data){
+let html="";
+
+data.forEach((u,i)=>{
+let rank = i+1;
+
+let me = (u.userId == user) ? " (YOU)" : "";
+
+html += `
+<div class="card">
+<div class="top">#${rank} ${u.userId}${me}</div>
+<div>💰 ${u.balance} BDT</div>
+</div>
+`;
+});
+
+list.innerHTML = html;
+}
+
+// default load
+loadAll();
+</script>
+
+</body>
+</html>
