@@ -1,32 +1,48 @@
 <!DOCTYPE html>
 <html>
 <head>
+<meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Admin Panel</title>
 
 <style>
 body{
   margin:0;
+  font-family:sans-serif;
   background:#020617;
   color:#fff;
-  font-family:sans-serif;
 }
 
-.container{padding:15px;}
+.container{
+  padding:15px;
+}
 
 .card{
-  background:#111;
+  background:rgba(255,255,255,0.05);
   padding:15px;
-  border-radius:10px;
+  border-radius:15px;
   margin-bottom:10px;
 }
 
-.btn{
-  padding:8px 12px;
-  background:green;
+input,button{
+  width:100%;
+  padding:12px;
+  margin:5px 0;
+  border-radius:10px;
   border:none;
+}
+
+button{
+  background:#9333ea;
   color:#fff;
-  border-radius:5px;
+}
+
+.approve{
+  background:#22c55e;
+}
+
+.reject{
+  background:#ef4444;
 }
 </style>
 </head>
@@ -37,75 +53,51 @@ body{
 
 <h2>👑 Admin Panel</h2>
 
-<h3>👥 Users</h3>
-<div id="users"></div>
+<div class="card">
+  <input id="pass" placeholder="Enter Password">
+  <button onclick="load()">Login</button>
+</div>
 
-<h3>💸 Withdraws</h3>
-<div id="withdraws"></div>
+<div id="list"></div>
 
 </div>
 
 <script>
 
-// 🔒 PROTECT
-if(localStorage.getItem("admin") !== "true"){
-  window.location.href = "/admin-login.html";
-}
-
 const API = "https://earn-system.onrender.com";
 
-// ===== LOAD USERS =====
-fetch(API + "/admin/users")
-.then(res=>res.json())
-.then(data=>{
-  let html = "";
+function load(){
+  let pass = document.getElementById("pass").value;
 
-  data.forEach(u=>{
-    html += `
-    <div class="card">
-      ID: ${u.userId}<br>
-      Balance: ${u.balance}<br>
-      Ref: ${u.referred || 0}
-    </div>
-    `;
+  fetch(API + "/admin/withdraws?pass=" + pass)
+  .then(res=>res.json())
+  .then(data=>{
+    let html = "";
+
+    data.forEach((w, i)=>{
+      html += `
+      <div class="card">
+        <p><b>ID:</b> ${w.id}</p>
+        <p><b>Amount:</b> ${w.amount}</p>
+        <p><b>Method:</b> ${w.method}</p>
+        <p><b>Number:</b> ${w.number}</p>
+
+        <button class="approve" onclick="approve(${i})">✅ Approve</button>
+        <button class="reject" onclick="reject(${i})">❌ Reject</button>
+      </div>
+      `;
+    });
+
+    document.getElementById("list").innerHTML = html;
   });
+}
 
-  document.getElementById("users").innerHTML = html;
-});
-
-// ===== LOAD WITHDRAW =====
-fetch(API + "/admin/withdraws")
-.then(res=>res.json())
-.then(data=>{
-  let html = "";
-
-  data.forEach((w,i)=>{
-    html += `
-    <div class="card">
-      ID: ${w.id}<br>
-      Amount: ${w.amount}<br>
-      Method: ${w.method}<br>
-      Number: ${w.number}<br>
-      Status: ${w.status}<br>
-      <button class="btn" onclick="approve(${i})">Approve</button>
-    </div>
-    `;
-  });
-
-  document.getElementById("withdraws").innerHTML = html;
-});
-
-// ===== APPROVE =====
 function approve(i){
-  fetch(API + "/admin/approve",{
-    method:"POST",
-    headers:{"Content-Type":"application/json"},
-    body: JSON.stringify({index:i})
-  })
-  .then(()=>{
-    alert("Approved");
-    location.reload();
-  });
+  alert("✅ Approved (demo)");
+}
+
+function reject(i){
+  alert("❌ Rejected (demo)");
 }
 
 </script>
