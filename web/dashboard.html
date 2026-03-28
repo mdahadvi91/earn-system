@@ -28,7 +28,7 @@ body{
 }
 
 .balance{
-  font-size:28px;
+  font-size:30px;
   color:#4ade80;
   font-weight:bold;
 }
@@ -44,6 +44,10 @@ body{
   text-decoration:none;
   font-weight:bold;
   box-shadow:0 0 10px #9333ea;
+}
+
+.btn:active{
+  transform: scale(0.95);
 }
 
 .bottom{
@@ -98,7 +102,7 @@ let user;
 if(tg.initDataUnsafe && tg.initDataUnsafe.user){
     user = tg.initDataUnsafe.user.id;
 } else {
-    // fallback (browser test)
+    // fallback for browser
     user = localStorage.getItem("uid");
     if(!user){
         user = Math.floor(Math.random()*100000);
@@ -112,7 +116,7 @@ function loadUser(){
   .then(res=>res.json())
   .then(data=>{
     document.getElementById("uid").innerText = user;
-    document.getElementById("bal").innerText = data.balance;
+    document.getElementById("bal").innerText = parseFloat(data.balance).toFixed(2);
   })
   .catch(()=>{
     alert("⚠️ Server not connected");
@@ -124,10 +128,15 @@ loadUser();
 // ===================== AD SYSTEM =====================
 function watchAd(){
 
-  // open ad (change later)
+  // disable button (anti spam)
+  const btn = document.querySelector(".btn");
+  btn.innerText = "⏳ Please wait...";
+  btn.style.pointerEvents = "none";
+
+  // open ad
   window.open("https://example.com", "_blank");
 
-  // reward after delay
+  // reward delay
   setTimeout(()=>{
 
     fetch(API + "/reward",{
@@ -138,9 +147,15 @@ function watchAd(){
     .then(()=>{
       alert("💰 Earned 0.5 BDT");
       loadUser();
+
+      btn.innerText = "▶ Start Earning";
+      btn.style.pointerEvents = "auto";
     })
     .catch(()=>{
       alert("❌ Error adding reward");
+
+      btn.innerText = "▶ Start Earning";
+      btn.style.pointerEvents = "auto";
     });
 
   },10000);
