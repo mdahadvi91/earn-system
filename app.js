@@ -83,6 +83,29 @@ app.get("/withdraws", (req, res) => {
   res.json(withdraws);
 });
 
+// ===== ADMIN USERS =====
+app.get("/admin/users", async (req,res)=>{
+  let users = await User.find();
+  res.json(users);
+});
+
+// ===== ADMIN WITHDRAWS =====
+app.get("/admin/withdraws", (req,res)=>{
+  res.json(withdraws);
+});
+
+// ===== APPROVE WITHDRAW =====
+app.post("/admin/approve", (req,res)=>{
+  const {index} = req.body;
+
+  if(withdraws[index]){
+    withdraws[index].status = "approved";
+    return res.json({success:true});
+  }
+
+  res.json({error:"Invalid"});
+});
+
 // ================= BOT ROUTE =================
 const botRoutes = require("./bot");
 app.use(botRoutes);
