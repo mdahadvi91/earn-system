@@ -99,7 +99,7 @@ if(tg.initDataUnsafe && tg.initDataUnsafe.user){
   localStorage.setItem("uid", user);
 }
 
-// ================= REF DETECT =================
+// ================= REF =================
 let ref = new URLSearchParams(window.location.search).get("ref");
 
 // ================= LOAD USER =================
@@ -113,16 +113,16 @@ function loadUser(){
 
   fetch(url)
   .then(res=>{
-    if(!res.ok) throw new Error("Server error");
+    if(!res.ok) throw new Error();
     return res.json();
   })
   .then(data=>{
-    document.getElementById("uid").innerText = user;
-    document.getElementById("bal").innerText = Number(data.balance).toFixed(2);
-    document.getElementById("ref").innerText = data.referred || 0;
+    uid.innerText = user;
+    bal.innerText = Number(data.balance).toFixed(2);
+    ref ? document.getElementById("ref").innerText = data.referred || 0 : "";
   })
   .catch(()=>{
-    setTimeout(loadUser,3000); // auto retry
+    setTimeout(loadUser,3000);
   });
 }
 
@@ -132,6 +132,7 @@ loadUser();
 function watchAd(){
 
   const btn = document.querySelector(".btn");
+
   btn.innerText = "⏳ Watching...";
   btn.style.pointerEvents = "none";
 
@@ -151,9 +152,16 @@ function watchAd(){
           headers:{"Content-Type":"application/json"},
           body: JSON.stringify({id:user, amount:0.5})
         })
-        .then(()=>{
-          alert("💰 Earned 0.5 BDT");
-          loadUser();
+        .then(res=>res.json())
+        .then(data=>{
+
+          if(data.error){
+            alert("❌ " + data.error);
+          }else{
+            alert("💰 Earned 0.5 BDT");
+            loadUser();
+          }
+
         });
 
       }else{
