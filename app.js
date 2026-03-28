@@ -1,90 +1,91 @@
 const express = require("express");
 const cors = require("cors");
 const path = require("path");
+const mongoose = require("mongoose");
 
 const app = express();
 
 app.use(cors());
 app.use(express.json());
 
-// static
+// ================= MONGODB =================
+mongoose.connect(process.env.MONGO_URI)
+.then(()=>console.log("✅ MongoDB Connected"))
+.catch(err=>console.log(err));
+
+// schema
+const UserSchema = new mongoose.Schema({
+  userId: String,
+  balance: { type: Number, default: 0 }
+});
+
+const User = mongoose.model("User", UserSchema);
+
+// ================= STATIC =================
 const webPath = path.join(__dirname, "web");
 app.use(express.static(webPath));
 
-// home
 app.get("/", (req, res) => {
   res.sendFile(path.join(webPath, "index.html"));
 });
 
-// test
 app.get("/test", (req, res) => {
   res.send("Server OK");
 });
 
-// user system
-let users = {};
+// ================= USER =================
+app.get("/user/:id", async (req, res) => {
+  let user = await User.findOne({ userId: req.params.id });
 
-app.get("/user/:id", (req, res) => {
-  let id = req.params.id;
-  if (!users[id]) users[id] = { balance: 0 };
-  res.json(users[id]);
+  if (!user) {
+    user = await User.create({ userId: req.params.id });
+  }
+
+  res.json(user);
 });
 
-app.post("/reward", (req, res) => {
-  let { id, amount } = req.body;
-  if (!users[id]) users[id] = { balance: 0 };
-  users[id].balance += amount;
+app.post("/reward", async (req, res) => {
+  const { id, amount } = req.body;
+
+  let user = await User.findOne({ userId: id });
+
+  if (!user) {
+    user = await User.create({ userId: id });
+  }
+
+  user.balance += amount;
+  await user.save();
+
   res.json({ success: true });
 });
 
-// 🔥 bot connect
-const botRoutes = require("./bot");
-app.use(botRoutes);
-
-app.listen(3000, () => console.log("Server running..."));
-
-
-const mongoose = require("mongoose");
-
-mongoose.connect(process.env.MONGO_URI)
-.then(()=>console.log("MongoDB Connected"))
-.catch(err=>console.log(err));
-
-// ================= WITHDRAW REQUEST =================
+// ================= WITHDRAW =================
 let withdraws = [];
 
-app.post("/withdraw", (req, res) => {
+app.post("/withdraw", async (req, res) => {
   const { id, amount, method, number } = req.body;
 
-  if (!id || !amount || !method || !number) {
-    return res.json({ error: "Missing data" });
-  }
+  let user = await User.findOne({ userId: id });
 
-  if (amount < 10) {
-    return res.json({ error: "Minimum withdraw 10 BDT" });
-  }
-
-  if (!users[id] || users[id].balance < amount) {
+  if (!user || user.balance < amount) {
     return res.json({ error: "Insufficient balance" });
   }
 
-  // balance cut
-  users[id].balance -= amount;
+  user.balance -= amount;
+  await user.save();
 
-  // save request
-  withdraws.push({
-    id,
-    amount,
-    method,
-    number,
-    status: "pending"
-  });
+  withdraws.push({ id, amount, method, number, status: "pending" });
 
   res.json({ success: true });
 });
 
-
-// ================= GET WITHDRAW (ADMIN) =================
 app.get("/withdraws", (req, res) => {
   res.json(withdraws);
 });
+
+// ================= BOT =================
+const botRoutes = require("./bot");
+app.use(botRoutes);
+
+// ================= START =================
+app.listen(3000, () => console.log("🚀 Server running..."));
