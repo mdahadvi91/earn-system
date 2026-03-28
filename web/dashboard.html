@@ -5,7 +5,6 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Earn Pro</title>
 
-<!-- Telegram WebApp -->
 <script src="https://telegram.org/js/telegram-web-app.js"></script>
 
 <style>
@@ -41,13 +40,7 @@ body{
   border-radius:15px;
   background: linear-gradient(45deg,#9333ea,#4f46e5);
   color:#fff;
-  text-decoration:none;
   font-weight:bold;
-  box-shadow:0 0 10px #9333ea;
-}
-
-.btn:active{
-  transform: scale(0.95);
 }
 
 .bottom{
@@ -58,7 +51,6 @@ body{
   justify-content:space-around;
   background: rgba(0,0,0,0.85);
   padding:10px;
-  border-top:1px solid rgba(255,255,255,0.1);
 }
 </style>
 
@@ -71,11 +63,12 @@ body{
 <div class="card">
   <h3>ID: <span id="uid">...</span></h3>
   <p class="balance">৳ <span id="bal">0.00</span></p>
+  <p>👥 Referrals: <span id="ref">0</span></p>
 </div>
 
 <div class="card">
   <h3>📺 Watch Ads</h3>
-  <a class="btn" onclick="watchAd()">▶ Start Earning</a>
+  <div class="btn" onclick="watchAd()">▶ Start Earning</div>
 </div>
 
 </div>
@@ -89,82 +82,98 @@ body{
 
 <script>
 
-// ===================== CONFIG =====================
+// ================= CONFIG =================
 const API = "https://earn-system.onrender.com";
 
-// ===================== TELEGRAM INIT =====================
+// ================= TELEGRAM =================
 let tg = window.Telegram.WebApp;
 tg.expand();
 
-// ===================== USER SYSTEM =====================
+// ================= USER =================
 let user;
 
 if(tg.initDataUnsafe && tg.initDataUnsafe.user){
-    user = tg.initDataUnsafe.user.id;
-} else {
-    // fallback for browser
-    user = localStorage.getItem("uid");
-    if(!user){
-        user = Math.floor(Math.random()*100000);
-        localStorage.setItem("uid", user);
-    }
+  user = tg.initDataUnsafe.user.id;
+}else{
+  user = localStorage.getItem("uid") || Math.floor(Math.random()*100000);
+  localStorage.setItem("uid", user);
 }
 
-// ===================== LOAD USER =====================
+// ================= REF DETECT =================
+let ref = new URLSearchParams(window.location.search).get("ref");
+
+// ================= LOAD USER =================
 function loadUser(){
-  fetch(API + "/user/" + user)
-  .then(res=>res.json())
+
+  let url = API + "/user/" + user;
+
+  if(ref){
+    url += "?ref=" + ref;
+  }
+
+  fetch(url)
+  .then(res=>{
+    if(!res.ok) throw new Error("Server error");
+    return res.json();
+  })
   .then(data=>{
     document.getElementById("uid").innerText = user;
-    document.getElementById("bal").innerText = parseFloat(data.balance).toFixed(2);
+    document.getElementById("bal").innerText = Number(data.balance).toFixed(2);
+    document.getElementById("ref").innerText = data.referred || 0;
   })
   .catch(()=>{
-    alert("⚠️ Server not connected");
+    setTimeout(loadUser,3000); // auto retry
   });
 }
 
 loadUser();
 
-// ===================== AD SYSTEM =====================
+// ================= AD SYSTEM =================
 function watchAd(){
 
-  // disable button (anti spam)
   const btn = document.querySelector(".btn");
-  btn.innerText = "⏳ Please wait...";
+  btn.innerText = "⏳ Watching...";
   btn.style.pointerEvents = "none";
 
-  // open ad
-  window.open("https://example.com", "_blank");
+  let win = window.open("YOUR_AD_LINK", "_blank");
+  let start = Date.now();
 
-  // reward delay
-  setTimeout(()=>{
+  let check = setInterval(()=>{
 
-    fetch(API + "/reward",{
-      method:"POST",
-      headers:{"Content-Type":"application/json"},
-      body: JSON.stringify({id:user, amount:0.5})
-    })
-    .then(()=>{
-      alert("💰 Earned 0.5 BDT");
-      loadUser();
+    if(win.closed){
+
+      let time = (Date.now() - start) / 1000;
+
+      if(time >= 8){
+
+        fetch(API + "/reward",{
+          method:"POST",
+          headers:{"Content-Type":"application/json"},
+          body: JSON.stringify({id:user, amount:0.5})
+        })
+        .then(()=>{
+          alert("💰 Earned 0.5 BDT");
+          loadUser();
+        });
+
+      }else{
+        alert("❌ Watch full ad");
+      }
 
       btn.innerText = "▶ Start Earning";
       btn.style.pointerEvents = "auto";
-    })
-    .catch(()=>{
-      alert("❌ Error adding reward");
 
-      btn.innerText = "▶ Start Earning";
-      btn.style.pointerEvents = "auto";
-    });
+      clearInterval(check);
+    }
 
-  },10000);
+  },1000);
 }
+
+// ================= NAV =================
 function go(page){
   window.location.href = "/" + page;
 }
 
-  
 </script>
 
 </body>
