@@ -7,16 +7,16 @@ const app = express();
 app.use(cors());
 app.use(express.json());
 
-// 🔥 static folder fix
+// static
 const webPath = path.join(__dirname, "web");
 app.use(express.static(webPath));
 
-// 🔥 force index.html load
+// home
 app.get("/", (req, res) => {
   res.sendFile(path.join(webPath, "index.html"));
 });
 
-// test route (debug)
+// test
 app.get("/test", (req, res) => {
   res.send("Server OK");
 });
@@ -37,5 +37,8 @@ app.post("/reward", (req, res) => {
   res.json({ success: true });
 });
 
-require("./bot");
+// 🔥 bot connect
+const botRoutes = require("./bot");
+app.use(botRoutes);
+
 app.listen(3000, () => console.log("Server running..."));
