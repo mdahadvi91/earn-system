@@ -1,0 +1,88 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Watch Ad</title>
+
+<style>
+body{
+  margin:0;
+  background:#020617;
+  color:#fff;
+  font-family:sans-serif;
+  text-align:center;
+}
+
+.box{
+  margin-top:100px;
+}
+
+.btn{
+  padding:15px;
+  background:#22c55e;
+  border:none;
+  border-radius:10px;
+  color:#fff;
+}
+</style>
+</head>
+
+<body>
+
+<div class="box">
+
+<h2>📺 Watch Ad</h2>
+
+<p id="timer">Loading...</p>
+
+<button id="btn" class="btn" disabled>Wait...</button>
+
+</div>
+
+<script>
+
+const API = "https://earn-system.onrender.com";
+
+let user = localStorage.getItem("uid");
+
+// ⏳ TIMER
+let time = 10;
+
+let t = setInterval(()=>{
+
+  document.getElementById("timer").innerText =
+  "⏳ Wait " + time + " sec";
+
+  time--;
+
+  if(time < 0){
+    clearInterval(t);
+
+    document.getElementById("btn").innerText = "✅ Claim Reward";
+    document.getElementById("btn").disabled = false;
+  }
+
+},1000);
+
+
+// 🎁 CLAIM
+document.getElementById("btn").onclick = function(){
+
+  fetch(API + "/reward",{
+    method:"POST",
+    headers:{"Content-Type":"application/json"},
+    body: JSON.stringify({id:user, amount:0.5})
+  })
+  .then(()=>{
+
+    alert("💰 Earned 0.5");
+
+    window.location.href = "/dashboard.html";
+
+  });
+
+};
+</script>
+
+</body>
+</html>
