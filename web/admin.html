@@ -47,6 +47,11 @@ body{
 
 <script>
 
+// 🔒 PROTECT
+if(localStorage.getItem("admin") !== "true"){
+  window.location.href = "/admin-login.html";
+}
+
 const API = "https://earn-system.onrender.com";
 
 // ===== LOAD USERS =====
