@@ -83,6 +83,19 @@ app.get("/withdraws", (req, res) => {
   res.json(withdraws);
 });
 
+// ===== ADMIN LOGIN =====
+const ADMIN_PASS = process.env.ADMIN_PASS;
+
+app.post("/admin/login", (req,res)=>{
+  const {password} = req.body;
+
+  if(password === ADMIN_PASS){
+    return res.json({success:true});
+  }
+
+  res.json({error:"Wrong password"});
+});
+
 // ===== ADMIN USERS =====
 app.get("/admin/users", async (req,res)=>{
   let users = await User.find();
