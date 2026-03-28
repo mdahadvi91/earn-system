@@ -49,3 +49,42 @@ const mongoose = require("mongoose");
 mongoose.connect(process.env.MONGO_URI)
 .then(()=>console.log("MongoDB Connected"))
 .catch(err=>console.log(err));
+
+// ================= WITHDRAW REQUEST =================
+let withdraws = [];
+
+app.post("/withdraw", (req, res) => {
+  const { id, amount, method, number } = req.body;
+
+  if (!id || !amount || !method || !number) {
+    return res.json({ error: "Missing data" });
+  }
+
+  if (amount < 10) {
+    return res.json({ error: "Minimum withdraw 10 BDT" });
+  }
+
+  if (!users[id] || users[id].balance < amount) {
+    return res.json({ error: "Insufficient balance" });
+  }
+
+  // balance cut
+  users[id].balance -= amount;
+
+  // save request
+  withdraws.push({
+    id,
+    amount,
+    method,
+    number,
+    status: "pending"
+  });
+
+  res.json({ success: true });
+});
+
+
+// ================= GET WITHDRAW (ADMIN) =================
+app.get("/withdraws", (req, res) => {
+  res.json(withdraws);
+});
