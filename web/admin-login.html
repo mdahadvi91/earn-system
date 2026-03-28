@@ -1,0 +1,88 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Admin Login</title>
+
+<style>
+body{
+  margin:0;
+  background:#020617;
+  color:#fff;
+  font-family:sans-serif;
+  display:flex;
+  justify-content:center;
+  align-items:center;
+  height:100vh;
+}
+
+.box{
+  background:#111;
+  padding:25px;
+  border-radius:15px;
+  width:90%;
+  max-width:300px;
+}
+
+input{
+  width:100%;
+  padding:12px;
+  margin-top:10px;
+  border:none;
+  border-radius:8px;
+}
+
+button{
+  width:100%;
+  padding:12px;
+  margin-top:15px;
+  background:#9333ea;
+  border:none;
+  color:#fff;
+  border-radius:8px;
+}
+</style>
+</head>
+
+<body>
+
+<div class="box">
+
+<h2>🔐 Admin Login</h2>
+
+<input type="password" id="pass" placeholder="Enter Password">
+<button onclick="login()">Login</button>
+
+</div>
+
+<script>
+
+const API = "https://earn-system.onrender.com";
+
+function login(){
+
+  let password = document.getElementById("pass").value;
+
+  fetch(API + "/admin/login",{
+    method:"POST",
+    headers:{"Content-Type":"application/json"},
+    body: JSON.stringify({password})
+  })
+  .then(res=>res.json())
+  .then(data=>{
+
+    if(data.success){
+      localStorage.setItem("admin","true");
+      window.location.href = "/admin.html";
+    }else{
+      alert("❌ Wrong password");
+    }
+
+  });
+
+}
+
+</script>
+
+</body>
+</html>
