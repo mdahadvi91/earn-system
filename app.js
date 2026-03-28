@@ -8,18 +8,21 @@ const app = express();
 app.use(cors());
 app.use(express.json());
 
+
 // ================= MONGODB =================
 mongoose.connect(process.env.MONGO_URI)
 .then(()=>console.log("✅ MongoDB Connected"))
-.catch(err=>console.log(err));
+.catch(err=>console.log("❌ DB Error:", err));
 
-// schema
+
+// ================= SCHEMA =================
 const UserSchema = new mongoose.Schema({
   userId: String,
   balance: { type: Number, default: 0 }
 });
 
 const User = mongoose.model("User", UserSchema);
+
 
 // ================= STATIC =================
 const webPath = path.join(__dirname, "web");
@@ -32,6 +35,7 @@ app.get("/", (req, res) => {
 app.get("/test", (req, res) => {
   res.send("Server OK");
 });
+
 
 // ================= USER =================
 app.get("/user/:id", async (req, res) => {
@@ -59,6 +63,7 @@ app.post("/reward", async (req, res) => {
   res.json({ success: true });
 });
 
+
 // ================= WITHDRAW =================
 let withdraws = [];
 
@@ -71,66 +76,81 @@ app.post("/withdraw", async (req, res) => {
     return res.json({ error: "Insufficient balance" });
   }
 
+  // deduct balance
   user.balance -= amount;
   await user.save();
 
-  withdraws.push({ id, amount, method, number, status: "pending" });
+  withdraws.push({
+    id,
+    amount,
+    method,
+    number,
+    status: "pending"
+  });
 
   res.json({ success: true });
 });
 
-app.get("/withdraws", (req, res) => {
-  res.json(withdraws);
-});
 
-// ===== ADMIN LOGIN =====
-const ADMIN_PASS = process.env.ADMIN_PASS;
-
-app.post("/admin/login", (req,res)=>{
-  const {password} = req.body;
-
-  if(password === ADMIN_PASS){
-    return res.json({success:true});
-  }
-
-  res.json({error:"Wrong password"});
-});
-
+// ================= ADMIN =================
 const ADMIN_PASS = process.env.ADMIN_PASS || "24423";
 
-app.get("/admin/withdraws", (req,res)=>{
-  if(req.query.pass !== ADMIN_PASS){
-    return res.send("Unauthorized");
+// get withdraws
+app.get("/admin/withdraws", (req, res) => {
+  if (req.query.pass !== ADMIN_PASS) {
+    return res.json([]);
   }
   res.json(withdraws);
 });
 
-// ===== ADMIN USERS =====
-app.get("/admin/users", async (req,res)=>{
-  let users = await User.find();
-  res.json(users);
-});
+// approve withdraw
+app.post("/admin/approve", async (req, res) => {
+  const { index, pass } = req.body;
 
-// ===== ADMIN WITHDRAWS =====
-app.get("/admin/withdraws", (req,res)=>{
-  res.json(withdraws);
-});
-
-// ===== APPROVE WITHDRAW =====
-app.post("/admin/approve", (req,res)=>{
-  const {index} = req.body;
-
-  if(withdraws[index]){
-    withdraws[index].status = "approved";
-    return res.json({success:true});
+  if (pass !== ADMIN_PASS) {
+    return res.json({ error: "Unauthorized" });
   }
 
-  res.json({error:"Invalid"});
+  if (!withdraws[index]) {
+    return res.json({ error: "Invalid" });
+  }
+
+  withdraws[index].status = "approved";
+
+  res.json({ success: true });
 });
 
-// ================= BOT ROUTE =================
+// reject withdraw
+app.post("/admin/reject", async (req, res) => {
+  const { index, pass } = req.body;
+
+  if (pass !== ADMIN_PASS) {
+    return res.json({ error: "Unauthorized" });
+  }
+
+  let w = withdraws[index];
+
+  if (!w) {
+    return res.json({ error: "Invalid" });
+  }
+
+  // refund
+  let user = await User.findOne({ userId: w.id });
+  if (user) {
+    user.balance += w.amount;
+    await user.save();
+  }
+
+  w.status = "rejected";
+
+  res.json({ success: true });
+});
+
+
+// ================= BOT =================
 const botRoutes = require("./bot");
 app.use(botRoutes);
+
 
 // ================= START =================
 app.listen(3000, () => console.log("🚀 Server running..."));
