@@ -83,7 +83,7 @@ app.get("/withdraws", (req, res) => {
   res.json(withdraws);
 });
 
-// ================= BOT =================
+// ================= BOT ROUTE =================
 const botRoutes = require("./bot");
 app.use(botRoutes);
 
