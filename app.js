@@ -42,3 +42,10 @@ const botRoutes = require("./bot");
 app.use(botRoutes);
 
 app.listen(3000, () => console.log("Server running..."));
+
+
+const mongoose = require("mongoose");
+
+mongoose.connect(process.env.MONGO_URI)
+.then(()=>console.log("MongoDB Connected"))
+.catch(err=>console.log(err));
