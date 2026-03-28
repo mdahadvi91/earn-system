@@ -96,6 +96,15 @@ app.post("/admin/login", (req,res)=>{
   res.json({error:"Wrong password"});
 });
 
+const ADMIN_PASS = process.env.ADMIN_PASS || "24423";
+
+app.get("/admin/withdraws", (req,res)=>{
+  if(req.query.pass !== ADMIN_PASS){
+    return res.send("Unauthorized");
+  }
+  res.json(withdraws);
+});
+
 // ===== ADMIN USERS =====
 app.get("/admin/users", async (req,res)=>{
   let users = await User.find();
