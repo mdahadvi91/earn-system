@@ -1,0 +1,109 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Admin Panel</title>
+
+<style>
+body{
+  margin:0;
+  background:#020617;
+  color:#fff;
+  font-family:sans-serif;
+}
+
+.container{padding:15px;}
+
+.card{
+  background:#111;
+  padding:15px;
+  border-radius:10px;
+  margin-bottom:10px;
+}
+
+.btn{
+  padding:8px 12px;
+  background:green;
+  border:none;
+  color:#fff;
+  border-radius:5px;
+}
+</style>
+</head>
+
+<body>
+
+<div class="container">
+
+<h2>👑 Admin Panel</h2>
+
+<h3>👥 Users</h3>
+<div id="users"></div>
+
+<h3>💸 Withdraws</h3>
+<div id="withdraws"></div>
+
+</div>
+
+<script>
+
+const API = "https://earn-system.onrender.com";
+
+// ===== LOAD USERS =====
+fetch(API + "/admin/users")
+.then(res=>res.json())
+.then(data=>{
+  let html = "";
+
+  data.forEach(u=>{
+    html += `
+    <div class="card">
+      ID: ${u.userId}<br>
+      Balance: ${u.balance}<br>
+      Ref: ${u.referred || 0}
+    </div>
+    `;
+  });
+
+  document.getElementById("users").innerHTML = html;
+});
+
+// ===== LOAD WITHDRAW =====
+fetch(API + "/admin/withdraws")
+.then(res=>res.json())
+.then(data=>{
+  let html = "";
+
+  data.forEach((w,i)=>{
+    html += `
+    <div class="card">
+      ID: ${w.id}<br>
+      Amount: ${w.amount}<br>
+      Method: ${w.method}<br>
+      Number: ${w.number}<br>
+      Status: ${w.status}<br>
+      <button class="btn" onclick="approve(${i})">Approve</button>
+    </div>
+    `;
+  });
+
+  document.getElementById("withdraws").innerHTML = html;
+});
+
+// ===== APPROVE =====
+function approve(i){
+  fetch(API + "/admin/approve",{
+    method:"POST",
+    headers:{"Content-Type":"application/json"},
+    body: JSON.stringify({index:i})
+  })
+  .then(()=>{
+    alert("Approved");
+    location.reload();
+  });
+}
+
+</script>
+
+</body>
+</html>
