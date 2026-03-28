@@ -7,69 +7,52 @@
 
 <style>
 body{
-  margin:0;
-  font-family:sans-serif;
   background:#020617;
   color:#fff;
-}
-
-.container{
-  padding:15px;
+  font-family:sans-serif;
 }
 
 .card{
   background:rgba(255,255,255,0.05);
   padding:15px;
+  margin:10px;
   border-radius:15px;
-  margin-bottom:10px;
-}
-
-input,button{
-  width:100%;
-  padding:12px;
-  margin:5px 0;
-  border-radius:10px;
-  border:none;
 }
 
 button{
-  background:#9333ea;
+  padding:10px;
+  margin:5px;
+  border:none;
+  border-radius:10px;
   color:#fff;
 }
 
-.approve{
-  background:#22c55e;
-}
-
-.reject{
-  background:#ef4444;
-}
+.approve{background:#22c55e;}
+.reject{background:#ef4444;}
 </style>
 </head>
 
 <body>
 
-<div class="container">
+<h2 style="text-align:center">👑 Admin Panel</h2>
 
-<h2>👑 Admin Panel</h2>
+<input id="pass" placeholder="Password" style="width:90%;margin:10px;padding:10px">
 
-<div class="card">
-  <input id="pass" placeholder="Enter Password">
-  <button onclick="load()">Login</button>
-</div>
+<button onclick="load()" style="width:90%;margin:10px;padding:10px;background:#9333ea;color:white">
+Login
+</button>
 
 <div id="list"></div>
-
-</div>
 
 <script>
 
 const API = "https://earn-system.onrender.com";
+let password = "";
 
 function load(){
-  let pass = document.getElementById("pass").value;
+  password = document.getElementById("pass").value;
 
-  fetch(API + "/admin/withdraws?pass=" + pass)
+  fetch(API + "/admin/withdraws?pass=" + password)
   .then(res=>res.json())
   .then(data=>{
     let html = "";
@@ -77,13 +60,13 @@ function load(){
     data.forEach((w, i)=>{
       html += `
       <div class="card">
-        <p><b>ID:</b> ${w.id}</p>
-        <p><b>Amount:</b> ${w.amount}</p>
-        <p><b>Method:</b> ${w.method}</p>
-        <p><b>Number:</b> ${w.number}</p>
+        <p>ID: ${w.id}</p>
+        <p>Amount: ${w.amount}</p>
+        <p>${w.method} - ${w.number}</p>
+        <p>Status: ${w.status}</p>
 
-        <button class="approve" onclick="approve(${i})">✅ Approve</button>
-        <button class="reject" onclick="reject(${i})">❌ Reject</button>
+        <button class="approve" onclick="approve(${i})">Approve</button>
+        <button class="reject" onclick="reject(${i})">Reject</button>
       </div>
       `;
     });
@@ -93,11 +76,21 @@ function load(){
 }
 
 function approve(i){
-  alert("✅ Approved (demo)");
+  fetch(API + "/admin/approve",{
+    method:"POST",
+    headers:{"Content-Type":"application/json"},
+    body: JSON.stringify({ index:i, pass:password })
+  })
+  .then(()=> load());
 }
 
 function reject(i){
-  alert("❌ Rejected (demo)");
+  fetch(API + "/admin/reject",{
+    method:"POST",
+    headers:{"Content-Type":"application/json"},
+    body: JSON.stringify({ index:i, pass:password })
+  })
+  .then(()=> load());
 }
 
 </script>
