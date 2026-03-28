@@ -81,10 +81,10 @@ body{
 </div>
 
 <div class="bottom">
-  <span>🏠</span>
-  <span>👥</span>
-  <span>💰</span>
-  <span onclick="withdraw()">💸</span>
+  <span onclick="go('dashboard.html')">🏠</span>
+  <span onclick="go('invite.html')">👥</span>
+  <span onclick="go('dashboard.html')">💰</span>
+  <span onclick="go('withdraw.html')">💸</span>
 </div>
 
 <script>
@@ -160,39 +160,11 @@ function watchAd(){
 
   },10000);
 }
-
-  function withdraw(){
-
-  let amount = prompt("Enter amount (min 10 BDT)");
-  let method = prompt("Method (bkash/nagad)");
-  let number = prompt("Your Number");
-
-  if(!amount || !method || !number){
-    alert("Fill all fields");
-    return;
-  }
-
-  fetch(API + "/withdraw",{
-    method:"POST",
-    headers:{"Content-Type":"application/json"},
-    body: JSON.stringify({
-      id:user,
-      amount:Number(amount),
-      method:method,
-      number:number
-    })
-  })
-  .then(res=>res.json())
-  .then(data=>{
-    if(data.error){
-      alert("❌ " + data.error);
-    }else{
-      alert("✅ Withdraw Request Sent");
-      loadUser();
-    }
-  });
+function go(page){
+  window.location.href = "/" + page;
 }
 
+  
 </script>
 
 </body>
