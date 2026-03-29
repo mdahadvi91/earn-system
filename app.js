@@ -31,7 +31,7 @@ const User = mongoose.model("User", new mongoose.Schema({
 const crypto = require("crypto");
 
 // 🔐 secret (নিজে change করবা)
-const CPA_SECRET = "my_secret_key_123";
+const CPA_SECRET = "Hridoyvi@24423";
 
 let cpaLogs = [];
 
