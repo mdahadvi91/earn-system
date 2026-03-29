@@ -1,7 +1,10 @@
 <div style="padding:15px;">
 
-  <h2>💰 OfferWall</h2>
+  <h2>💰 Extra Earn</h2>
   <p>Complete offers & earn real USDT 🚀</p>
+
+  <!-- 🔥 Monetag ONLY HERE -->
+  <script src="https://quge5.com/88/tag.min.js" data-zone="224604" async data-cfasync="false"></script>
 
   <div id="offersBox"></div>
 
@@ -10,7 +13,7 @@
 <script>
 function loadOffers(){
 
-  let uid = user;
+  let uid = localStorage.getItem("uid") || user;
 
   let offers = [
     {
@@ -37,6 +40,7 @@ function loadOffers(){
       <div class="card">
         <h3>${o.name}</h3>
         <p>💰 ${o.reward}</p>
+
         <button class="btn" onclick="startOffer('${o.link}')">
           Start Now 🚀
         </button>
@@ -47,10 +51,14 @@ function loadOffers(){
   document.getElementById("offersBox").innerHTML = html;
 }
 
+// 🔥 CPA START (TRACKING FIXED)
 function startOffer(link){
-  let uid = user;
-  let final = link + "&tracking_id=" + uid;
-  window.open(final, "_blank");
+
+  let uid = localStorage.getItem("uid") || user;
+
+  let finalLink = link + "&tracking_id=" + uid;
+
+  window.open(finalLink, "_blank");
 }
 
 loadOffers();
