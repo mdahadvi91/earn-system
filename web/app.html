@@ -1,0 +1,207 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<script src="https://telegram.org/js/telegram-web-app.js"></script>
+
+<style>
+body{
+  margin:0;
+  font-family:sans-serif;
+  background:#0f0c29;
+  color:#fff;
+}
+
+/* top */
+.top{
+  margin:10px;
+  padding:20px;
+  background:linear-gradient(45deg,#312e81,#7c3aed);
+  border-radius:20px;
+}
+
+.balance{
+  color:#22c55e;
+  font-size:22px;
+}
+
+/* card */
+.card{
+  margin:10px;
+  padding:15px;
+  background:#1e1b4b;
+  border-radius:20px;
+}
+
+/* button */
+.btn{
+  background:linear-gradient(45deg,#9333ea,#6366f1);
+  padding:15px;
+  text-align:center;
+  border-radius:12px;
+  margin-top:10px;
+}
+
+/* progress */
+.bar{
+  height:6px;
+  background:#020617;
+  border-radius:10px;
+  overflow:hidden;
+}
+.fill{
+  height:100%;
+  background:#22c55e;
+  width:0%;
+}
+
+/* nav */
+.nav{
+  position:fixed;
+  bottom:0;
+  width:100%;
+  display:flex;
+  justify-content:space-around;
+  background:#020617;
+  padding:10px;
+}
+</style>
+</head>
+
+<body>
+
+<!-- TOP -->
+<div class="top">
+ID: <span id="uid"></span><br>
+Balance: <span class="balance" id="bal">0</span> USDT
+</div>
+
+<!-- TASK -->
+<div id="task" class="card">
+
+<h3>⚡ Quick Ads</h3>
+
+<p>Daily Progress</p>
+<div class="bar"><div id="bar" class="fill"></div></div>
+
+<div class="btn" onclick="watch()">▶ Watch Ad</div>
+
+<!-- REAL AD -->
+<div id="adbox" style="margin-top:10px">
+<script type='text/javascript' src='//plxxxx.adsterra.com/...'></script>
+</div>
+
+</div>
+
+<!-- INVITE -->
+<div id="invite" class="card" style="display:none">
+
+<h3>👥 Referral</h3>
+
+<input id="link" style="width:100%;padding:10px;border-radius:10px">
+
+<p>Total: <span id="refs">0</span></p>
+
+<div class="btn" onclick="copy()">Copy Link</div>
+
+</div>
+
+<!-- WITHDRAW -->
+<div id="withdraw" class="card" style="display:none">
+
+<h3>💰 Withdraw USDT</h3>
+
+<input id="amount" placeholder="Amount" style="width:100%;margin:5px 0">
+<input id="addr" placeholder="Wallet Address" style="width:100%;margin:5px 0">
+
+<div class="btn" onclick="wd()">Withdraw</div>
+
+</div>
+
+<!-- NAV -->
+<div class="nav">
+<div onclick="show('task')">🏠</div>
+<div onclick="show('invite')">👥</div>
+<div onclick="show('withdraw')">💰</div>
+</div>
+
+<script>
+let tg = window.Telegram.WebApp;
+let user = tg.initDataUnsafe.user.id;
+
+uid.innerText=user;
+
+let daily=0;
+
+// load
+function load(){
+fetch("/user/"+user)
+.then(r=>r.json())
+.then(d=>{
+bal.innerText=d.balance;
+refs.innerText=d.referrals;
+link.value="https://t.me/YOUR_BOT?start="+user;
+
+daily=d.dailyEarn || 0;
+bar.style.width=(daily/0.05*100)+"%";
+});
+}
+
+// watch ad
+function watch(){
+alert("Watch full ad");
+
+setTimeout(()=>{
+fetch("/reward",{
+method:"POST",
+headers:{'Content-Type':'application/json'},
+body:JSON.stringify({id:user})
+})
+.then(r=>r.json())
+.then(d=>{
+if(d.success){
+alert("Earned 0.002 USDT");
+}else{
+alert(d.error);
+}
+load();
+});
+},15000);
+}
+
+// withdraw
+function wd(){
+fetch("/withdraw",{
+method:"POST",
+headers:{'Content-Type':'application/json'},
+body:JSON.stringify({
+id:user,
+amount:amount.value,
+number:addr.value
+})
+})
+.then(r=>r.json())
+.then(d=>{
+alert(d.success?"Requested":"Error");
+});
+}
+
+// copy
+function copy(){
+navigator.clipboard.writeText(link.value);
+alert("Copied");
+}
+
+// nav
+function show(x){
+task.style.display="none";
+invite.style.display="none";
+withdraw.style.display="none";
+document.getElementById(x).style.display="block";
+}
+
+load();
+</script>
+
+</body>
+</html>
