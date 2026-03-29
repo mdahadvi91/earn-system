@@ -209,6 +209,26 @@ app.post("/api/admin/reject", async (req,res)=>{
   res.json({success:true});
 });
 
+// ================= LEADERBOARD =================
+
+// 🔥 Top Balance Users
+app.get("/api/leaderboard", async (req,res)=>{
+  let users = await User.find()
+  .sort({ balance: -1 })
+  .limit(20);
+
+  res.json(users);
+});
+
+// 🔥 Top Referral Users
+app.get("/api/leaderboard/ref", async (req,res)=>{
+  let users = await User.find()
+  .sort({ referrals: -1 })
+  .limit(20);
+
+  res.json(users);
+});
+
 // ================= BOT =================
 const bot = require("./bot");
 app.use(bot);
