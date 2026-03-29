@@ -18,6 +18,7 @@ function loadPage(page){
     if(page === "invite") initInvite();
     if(page === "withdraw") initWithdraw();
     if(page === "offer"){}
+    if(page === "offerwall"){}
     if(page === "leaderboard"){}
   });
 }
