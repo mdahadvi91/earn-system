@@ -1,0 +1,76 @@
+<div style="padding:15px; color:white;">
+
+  <h2>💰 Earn More (OfferWall)</h2>
+  <p>Complete offers & earn real USDT instantly 🔥</p>
+
+  <div id="offersBox"></div>
+
+</div>
+
+<script>
+function loadOffers(){
+
+  let uid = user; // telegram user id
+
+  let offers = [
+    {
+      name: "🔥 Premium Survey",
+      reward: "Up to 2.5 USDT",
+      link: "https://www.cpagrip.com/show.php?l=12345"
+    },
+    {
+      name: "🎮 Play & Earn Game",
+      reward: "Up to 1.8 USDT",
+      link: "https://www.cpagrip.com/show.php?l=67890"
+    },
+    {
+      name: "📱 App Install Offer",
+      reward: "Up to 3.0 USDT",
+      link: "https://www.cpagrip.com/show.php?l=54321"
+    }
+  ];
+
+  let html = "";
+
+  offers.forEach((offer, i) => {
+    html += `
+      <div style="
+        background:#111;
+        margin-top:15px;
+        padding:15px;
+        border-radius:10px;
+        box-shadow:0 0 10px #00ffcc33;
+      ">
+        <h3>${offer.name}</h3>
+        <p>💰 ${offer.reward}</p>
+
+        <button onclick="startOffer('${offer.link}')"
+        style="
+          padding:10px;
+          width:100%;
+          background:#00ffcc;
+          border:none;
+          border-radius:8px;
+          font-weight:bold;
+        ">
+          Start Now 🚀
+        </button>
+      </div>
+    `;
+  });
+
+  document.getElementById("offersBox").innerHTML = html;
+}
+
+// 🔥 OPEN OFFER WITH TRACKING
+function startOffer(link){
+  let uid = user;
+
+  let finalLink = link + "&tracking_id=" + uid;
+
+  window.open(finalLink, "_blank");
+}
+
+// auto load
+loadOffers();
+</script>
