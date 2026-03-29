@@ -1,0 +1,66 @@
+/* 🌌 GLOBAL DARK THEME */
+body {
+  margin: 0;
+  font-family: Arial;
+  background: linear-gradient(135deg, #0f2027, #203a43, #2c5364);
+  color: white;
+}
+
+/* 🔥 NAV BAR (GLASS) */
+.nav {
+  position: fixed;
+  bottom: 0;
+  width: 100%;
+  display: flex;
+  justify-content: space-around;
+  background: rgba(255,255,255,0.05);
+  backdrop-filter: blur(10px);
+  padding: 10px 0;
+  border-top: 1px solid rgba(255,255,255,0.1);
+}
+
+/* NAV ITEMS */
+.nav div {
+  text-align: center;
+  font-size: 20px;
+  cursor: pointer;
+  transition: 0.3s;
+}
+
+/* HOVER EFFECT */
+.nav div:hover {
+  transform: scale(1.2);
+  color: #00ffcc;
+}
+
+/* 🔥 CARD STYLE */
+.card {
+  background: rgba(255,255,255,0.05);
+  backdrop-filter: blur(10px);
+  padding: 15px;
+  margin-top: 15px;
+  border-radius: 12px;
+  box-shadow: 0 0 10px #00ffcc33;
+}
+
+/* 💰 BUTTON STYLE */
+.btn {
+  width: 100%;
+  padding: 12px;
+  border: none;
+  border-radius: 8px;
+  background: linear-gradient(45deg, #00ffcc, #00ccff);
+  font-weight: bold;
+  cursor: pointer;
+  transition: 0.3s;
+}
+
+.btn:hover {
+  transform: scale(1.05);
+  box-shadow: 0 0 10px #00ffcc;
+}
+
+/* 🏆 TITLE */
+h2 {
+  text-shadow: 0 0 10px #00ffcc;
+}
