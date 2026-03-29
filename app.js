@@ -27,6 +27,70 @@ const User = mongoose.model("User", new mongoose.Schema({
   device: String
 }));
 
+// ================= CPA AUTO REWARD (SECURE) =================
+const crypto = require("crypto");
+
+// 🔐 secret (নিজে change করবা)
+const CPA_SECRET = "my_secret_key_123";
+
+let cpaLogs = [];
+
+app.get("/api/cpa", async (req, res) => {
+  try {
+    const { user_id, amount, hash } = req.query;
+
+    if (!user_id || !amount) {
+      return res.send("Invalid");
+    }
+
+    // 🔐 hash verify (security)
+    const checkHash = crypto
+      .createHash("md5")
+      .update(user_id + amount + CPA_SECRET)
+      .digest("hex");
+
+    if (hash && hash !== checkHash) {
+      return res.send("❌ Invalid hash");
+    }
+
+    let user = await User.findOne({ userId: user_id });
+    if (!user) user = await User.create({ userId: user_id });
+
+    const reward = parseFloat(amount);
+
+    // 🚫 max limit per offer
+    if (reward > 5) {
+      return res.send("❌ Too high");
+    }
+
+    // 🚫 duplicate protection (same amount within 10 sec)
+    const now = Date.now();
+    if (user.lastCPA && (now - user.lastCPA < 10000)) {
+      return res.send("⚠ Too fast");
+    }
+
+    user.balance += reward;
+    user.lastCPA = now;
+
+    await user.save();
+
+    // 🧾 log save
+    cpaLogs.push({
+      user: user_id,
+      amount: reward,
+      time: new Date()
+    });
+
+    console.log("💰 CPA:", user_id, reward);
+
+    res.send("OK");
+
+  } catch (err) {
+    console.log("❌ CPA ERROR:", err);
+    res.send("ERROR");
+  }
+});
+
 // ================= STATIC =================
 app.use(express.static(path.join(__dirname,"web")));
 
@@ -61,37 +125,6 @@ app.get("/api/user/:id", async (req,res)=>{
   }
 
   res.json(user);
-});
-
-// ================= CPA AUTO REWARD =================
-app.get("/api/cpa", async (req, res) => {
-  try {
-    const { user_id, amount } = req.query;
-
-    if (!user_id || !amount) {
-      return res.send("Invalid");
-    }
-
-    let user = await User.findOne({ userId: user_id });
-
-    if (!user) {
-      user = await User.create({ userId: user_id });
-    }
-
-    const reward = parseFloat(amount);
-
-    user.balance += reward;
-
-    await user.save();
-
-    console.log("✅ CPA Reward:", user_id, reward);
-
-    res.send("OK");
-
-  } catch (err) {
-    console.log("❌ CPA ERROR:", err);
-    res.send("ERROR");
-  }
 });
 
 // ================= REWARD =================
