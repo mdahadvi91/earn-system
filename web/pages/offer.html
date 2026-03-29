@@ -1,37 +1,48 @@
-<h3>🔥 Offerwall (Big Earning)</h3>
+<!DOCTYPE html>
+<html>
+<head>
+  <title>Extra Earn</title>
 
-<div id="offers"></div>
+  <!-- CPA LOCKER SCRIPT -->
+  <script type="text/javascript"
+  src="https://playabledownloads.com/script_include.php?id=1886652">
+  </script>
+
+  <link rel="stylesheet" href="../style.css">
+
+  <style>
+    body {
+      text-align: center;
+      background: #0f172a;
+      color: white;
+      font-family: Arial;
+    }
+
+    .box {
+      margin-top: 80px;
+      padding: 20px;
+      background: #1e293b;
+      border-radius: 10px;
+    }
+  </style>
+</head>
+
+<body>
+
+<div class="box">
+  <h2>🔥 Complete Offer & Earn</h2>
+  <p>Offer complete korle automatically reward add hobe</p>
+</div>
+
+<script src="../js/user.js"></script>
 
 <script>
-function loadOffers(){
-  fetch("/api/offers")
-  .then(r=>r.json())
-  .then(data=>{
-    let html = "";
+  // user id load
+  let uid = localStorage.getItem("uid") || "test123";
 
-    data.forEach(o=>{
-      html += `
-      <div class="card">
-        <b>${o.title}</b><br>
-        💰 Reward: ${o.reward} USDT<br>
-        <div class="btn" onclick="startOffer('${o.link}', ${o.reward})">
-          ▶ Start
-        </div>
-      </div>`;
-    });
-
-    offers.innerHTML = html;
-  });
-}
-
-function startOffer(link,reward){
-
-  window.open(link);
-
-  setTimeout(()=>{
-    alert("✅ Task completed! Reward will be added after verification");
-  },15000);
-}
-
-loadOffers();
+  // cookie for CPA tracking
+  document.cookie = "user_id=" + uid;
 </script>
+
+</body>
+</html>
