@@ -2,9 +2,17 @@
 <html>
 <head>
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
 <script src="https://telegram.org/js/telegram-web-app.js"></script>
-  <!-- 🔥 Monetag Multitag -->
-<script src="MONETAG_JS_FILE_NAME.js"></script>
+
+<!-- 🔥 MONETAG MULTITAG (IMPORTANT) -->
+<script>
+(function(d,z,s){
+s.src='https://3nbf4.com/act/files/tag.min.js'; // monetag loader
+s.async=true;
+d.getElementsByTagName('head')[0].appendChild(s);
+})(document,10803378);
+</script>
 
 <title>Earn Pro</title>
 
@@ -52,7 +60,7 @@ body{
 
 <body>
 
-<!-- 🔥 GLOBAL AD -->
+<!-- 🔥 GLOBAL AD (Adsterra Social Bar) -->
 <script src="https://pl29010405.profitablecpmratenetwork.com/03/60/2c/03602c436b7c471195a5771cbb6aed7a.js"></script>
 
 <div class="top">
@@ -92,6 +100,7 @@ let user = tg.initDataUnsafe.user.id;
 
 uid.innerText = user;
 
+// LOAD USER
 function load(){
 fetch("/user/"+user)
 .then(r=>r.json())
@@ -102,9 +111,10 @@ link.value = "https://t.me/YOUR_BOT?start=" + user;
 });
 }
 
+// WATCH AD
 function watch(){
 
-  // 🔥 REAL AD LINK
+  // 🔥 ADSTERRA SMARTLINK
   window.open("https://www.profitablecpmratenetwork.com/kxq650wd?key=11d1ec5f3d88b1d9689e0547e8b15dd1");
 
   setTimeout(()=>{
@@ -116,7 +126,7 @@ function watch(){
     .then(r=>r.json())
     .then(d=>{
       if(d.success){
-        alert("Earned "+d.reward.toFixed(4)+" USDT");
+        alert("Earned 0.002 USDT");
       }else{
         alert(d.error);
       }
@@ -125,6 +135,7 @@ function watch(){
   },15000);
 }
 
+// WITHDRAW
 function wd(){
 fetch("/withdraw",{
 method:"POST",
@@ -141,11 +152,13 @@ alert(d.success?"Request Sent":"Error");
 });
 }
 
+// COPY
 function copy(){
 navigator.clipboard.writeText(link.value);
 alert("Copied");
 }
 
+// NAV
 function show(x){
 task.style.display="none";
 invite.style.display="none";
