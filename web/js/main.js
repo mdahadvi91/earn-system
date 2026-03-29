@@ -16,6 +16,7 @@ function loadPage(page){
     if(page === "task") initTask();
     if(page === "invite") initInvite();
     if(page === "withdraw") initWithdraw();
+    if(page === "leaderboard"){}
   });
 }
 
