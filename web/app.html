@@ -47,6 +47,13 @@ body{
   padding:15px;
   margin-bottom:70px;
 }
+input, select{
+  width:100%;
+  padding:10px;
+  margin-top:10px;
+  border-radius:10px;
+  border:none;
+}
 </style>
 </head>
 
@@ -56,22 +63,23 @@ body{
 <script src="https://pl29010405.profitablecpmratenetwork.com/03/60/2c/03602c436b7c471195a5771cbb6aed7a.js"></script>
 
 <div class="top">
-User ID: <span id="uid"></span>
+User ID: <span id="uid"></span><br>
+Balance: <span id="bal">0</span> USDT
 </div>
 
 <!-- ================= PAGES ================= -->
 
 <div id="task" class="page" style="display:block;">
   <h3>🎥 Task</h3>
-  <div class="btn" onclick="alert('Watch ad system ready')">Watch Ad</div>
+  <div class="btn" onclick="watchAd()">Watch Ad</div>
 </div>
 
 <div id="invite" class="page">
   <h3>👥 Invite</h3>
-  <p>Invite system ready</p>
+  <p>Your referral link:</p>
+  <div class="card" id="refLink"></div>
 </div>
 
-<!-- 🔥 WITHDRAW PAGE (ADD HOISE) -->
 <div id="withdraw" class="page">
   <h3>💸 Withdraw</h3>
 
@@ -89,10 +97,12 @@ User ID: <span id="uid"></span>
 
 <div id="leaderboard" class="page">
   <h3>🏆 Leaderboard</h3>
+  <div id="leaderboardList"></div>
 </div>
 
 <div id="offerwall" class="page">
   <h3>🔥 Offerwall</h3>
+  <div id="offers"></div>
 </div>
 
 <!-- ================= NAV ================= -->
@@ -112,13 +122,53 @@ let user = tg.initDataUnsafe.user?.id || "test_user";
 
 document.getElementById("uid").innerText = user;
 
+// 🔐 DEVICE ID (IMPORTANT)
+let device = localStorage.getItem("device_id");
+if(!device){
+  device = Math.random().toString(36).substring(2);
+  localStorage.setItem("device_id", device);
+}
+
 // page switch
 function showPage(page){
   document.querySelectorAll(".page").forEach(p=>p.style.display="none");
   document.getElementById(page).style.display="block";
+
+  if(page=="leaderboard") loadLeaderboard();
+  if(page=="offerwall") loadOffers();
 }
 
-// 🔥 WITHDRAW FUNCTION (ADD HOISE)
+// 💰 LOAD USER
+function loadUser(){
+  fetch("/api/user/"+user)
+  .then(r=>r.json())
+  .then(d=>{
+    document.getElementById("bal").innerText = d.balance.toFixed(4);
+  });
+}
+
+// 🔄 AUTO REFRESH
+setInterval(loadUser, 5000);
+loadUser();
+
+// 🎥 WATCH AD (reward)
+function watchAd(){
+  fetch("/api/reward",{
+    method:"POST",
+    headers:{"Content-Type":"application/json"},
+    body:JSON.stringify({
+      id:user,
+      device:device
+    })
+  })
+  .then(r=>r.json())
+  .then(d=>{
+    alert(d.msg);
+    loadUser();
+  });
+}
+
+// 💸 WITHDRAW
 function withdraw(){
   let amount = document.getElementById("amount").value;
   let account = document.getElementById("account").value;
@@ -139,6 +189,40 @@ function withdraw(){
     alert(d.msg);
   });
 }
+
+// 🏆 LEADERBOARD
+function loadLeaderboard(){
+  fetch("/api/leaderboard")
+  .then(r=>r.json())
+  .then(data=>{
+    let html="";
+    data.forEach(u=>{
+      html+=`<div class="card">${u.userId} - ${u.balance.toFixed(3)}</div>`;
+    });
+    document.getElementById("leaderboardList").innerHTML = html;
+  });
+}
+
+// 🔥 OFFERS
+function loadOffers(){
+  fetch("/api/offers")
+  .then(r=>r.json())
+  .then(data=>{
+    let html="";
+    data.forEach(o=>{
+      html+=`<div class="card">
+        ${o.title}<br>
+        💰 ${o.reward}
+        <div class="btn" onclick="window.open('${o.link}')">Start</div>
+      </div>`;
+    });
+    document.getElementById("offers").innerHTML = html;
+  });
+}
+
+// 👥 REF LINK
+document.getElementById("refLink").innerText =
+  window.location.origin + "?ref=" + user;
 
 </script>
 
