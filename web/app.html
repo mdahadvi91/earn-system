@@ -6,34 +6,62 @@
 <script src="https://telegram.org/js/telegram-web-app.js"></script>
 
 <!-- Monetag -->
-<script>
-(function(d,z,s){
-s.src='https://3nbf4.com/act/files/tag.min.js';
-s.async=true;
-d.getElementsByTagName('head')[0].appendChild(s);
-})(document,10803378);
-</script>
+<script src="/MONETAG_JS_FILE_NAME.js"></script>
 
 <title>Earn Pro</title>
 
 <style>
-body{margin:0;background:#0f172a;color:#fff;font-family:sans-serif}
-.nav{position:fixed;bottom:0;width:100%;display:flex;justify-content:space-around;background:#020617;padding:10px}
-iframe{width:100%;height:85vh;border:none}
+body{
+  margin:0;
+  font-family:sans-serif;
+  background:#0f172a;
+  color:#fff;
+}
+.top{
+  margin:10px;
+  padding:20px;
+  border-radius:20px;
+  background:linear-gradient(45deg,#1e293b,#7c3aed);
+}
+.card{
+  margin:10px;
+  padding:15px;
+  background:#1e293b;
+  border-radius:20px;
+}
+.btn{
+  padding:15px;
+  border-radius:12px;
+  background:linear-gradient(45deg,#9333ea,#4f46e5);
+  text-align:center;
+  margin-top:10px;
+}
+.nav{
+  position:fixed;
+  bottom:0;
+  width:100%;
+  background:#020617;
+  display:flex;
+  justify-content:space-around;
+  padding:10px;
+}
 </style>
 </head>
 
 <body>
 
-<!-- Adsterra -->
-<script src="https://pl29010405.profitablecpmratenetwork.com/03/60/2c/03602c436b7c471195a5771cbb6aed7a.js"></script>
+<div class="top">
+User ID: <span id="uid"></span>
+</div>
 
-<iframe id="frame" src="pages/task.html"></iframe>
+<!-- DYNAMIC CONTENT -->
+<div id="content"></div>
 
+<!-- NAV -->
 <div class="nav">
-<div onclick="go('task')">🏠</div>
-<div onclick="go('invite')">👥</div>
-<div onclick="go('withdraw')">💰</div>
+<div onclick="showPage('task')">🏠</div>
+<div onclick="showPage('invite')">👥</div>
+<div onclick="showPage('withdraw')">💰</div>
 </div>
 
 <script src="js/main.js"></script>
