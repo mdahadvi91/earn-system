@@ -27,3 +27,13 @@ function loadPage(page){
 function showPage(page){
   loadPage(page);
 }
+
+function showPage(page) {
+  if(page === "offer"){
+    window.location.href = "pages/offer.html";
+    return;
+  }
+
+  document.querySelectorAll(".page").forEach(p => p.style.display = "none");
+  document.getElementById(page).style.display = "block";
+}
