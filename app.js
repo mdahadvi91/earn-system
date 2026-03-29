@@ -61,29 +61,34 @@ app.get("/api/user/:id", async (req,res)=>{
 app.post("/api/reward", async (req,res)=>{
   const { id } = req.body;
 
+  let ip = req.headers['x-forwarded-for'] || req.socket.remoteAddress;
+
   let user = await User.findOne({userId:id});
   if(!user) user = await User.create({userId:id});
 
   const now = Date.now();
   const today = new Date().toDateString();
 
-  // 🔄 reset daily
   if(user.lastDay !== today){
     user.dailyEarn = 0;
     user.lastDay = today;
   }
 
-  // ❌ cooldown (15 sec)
-  if(user.lastClaim && (now - user.lastClaim < 15000)){
-    return res.json({success:false, msg:"⏳ Wait 15 sec"});
+  // ⏳ 20 sec cooldown
+  if(user.lastClaim && (now - user.lastClaim < 20000)){
+    return res.json({success:false, msg:"⏳ Wait 20 sec"});
   }
 
-  // ❌ daily limit
+  // 🚫 daily limit
   if(user.dailyEarn >= 0.05){
-    return res.json({success:false, msg:"🚫 Daily limit reached"});
+    return res.json({success:false, msg:"🚫 Daily limit"});
   }
 
-  // 💰 random reward
+  // ⚠ suspicious
+  if(user.totalAds > 0 && (now - user.lastClaim < 5000)){
+    return res.json({success:false, msg:"⚠ Suspicious activity"});
+  }
+
   const reward = (Math.random()*0.002 + 0.001);
 
   user.balance += reward;
@@ -95,11 +100,11 @@ app.post("/api/reward", async (req,res)=>{
 
   res.json({
     success:true,
-    msg:`💰 Earned ${reward.toFixed(4)} USDT`,
-    reward:reward
+    msg:`💰 ${reward.toFixed(4)} USDT added`
   });
 });
 
+  
 // ================= WITHDRAW =================
 let withdraws = [];
 
