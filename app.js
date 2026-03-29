@@ -38,15 +38,18 @@ app.get("/", (req,res)=>{
 app.get("/api/user/:id", async (req,res)=>{
   let { ref } = req.query;
 
+  let ip = req.headers['x-forwarded-for'] || req.socket.remoteAddress;
+
   let user = await User.findOne({userId:req.params.id});
 
   if(!user){
     user = await User.create({
       userId:req.params.id,
-      refBy: ref || null
+      refBy: ref || null,
+      ip: ip
     });
 
-    // 🔥 referral bonus
+    // referral bonus
     if(ref && ref !== req.params.id){
       let r = await User.findOne({userId:ref});
       if(r){
@@ -62,7 +65,7 @@ app.get("/api/user/:id", async (req,res)=>{
 
 // ================= REWARD =================
 app.post("/api/reward", async (req,res)=>{
-  const { id } = req.body;
+  const { id, device } = req.body;
 
   let ip = req.headers['x-forwarded-for'] || req.socket.remoteAddress;
 
@@ -77,17 +80,17 @@ app.post("/api/reward", async (req,res)=>{
     user.lastDay = today;
   }
 
-  // ⏳ 20 sec cooldown
+  // cooldown
   if(user.lastClaim && (now - user.lastClaim < 20000)){
     return res.json({success:false, msg:"⏳ Wait 20 sec"});
   }
 
-  // 🚫 daily limit
+  // daily limit
   if(user.dailyEarn >= 0.05){
     return res.json({success:false, msg:"🚫 Daily limit"});
   }
 
-  // ⚠ suspicious
+  // suspicious
   if(user.totalAds > 0 && (now - user.lastClaim < 5000)){
     return res.json({success:false, msg:"⚠ Suspicious activity"});
   }
@@ -98,8 +101,11 @@ app.post("/api/reward", async (req,res)=>{
   user.dailyEarn += reward;
   user.totalAds += 1;
   user.lastClaim = now;
+
+  // save tracking
   user.ip = ip;
-user.device = req.body.device;
+  user.device = device;
+
   await user.save();
 
   res.json({
@@ -108,7 +114,6 @@ user.device = req.body.device;
   });
 });
 
-  
 // ================= WITHDRAW =================
 let withdraws = [];
 
@@ -117,20 +122,22 @@ app.post("/api/withdraw", async (req,res)=>{
 
   let user = await User.findOne({userId:id});
 
-  if(!user || user.balance < amount){
+  const amt = parseFloat(amount);
+
+  if(!user || user.balance < amt){
     return res.json({success:false, msg:"❌ Low balance"});
   }
 
-  if(amount < 1){
+  if(amt < 1){
     return res.json({success:false, msg:"⚠ Min 1 USDT"});
   }
 
-  user.balance -= amount;
+  user.balance -= amt;
   await user.save();
 
   withdraws.push({
     id,
-    amount,
+    amount: amt,
     address,
     status:"pending",
     time: new Date()
@@ -140,64 +147,48 @@ app.post("/api/withdraw", async (req,res)=>{
 });
 
 // ================= ADMIN =================
-const ADMIN_PASS = process.env.ADMIN_PASS || "12345";
+const ADMIN_PASS = process.env.ADMIN_PASS;
 
-// 🔥 all users
+// all users
 app.get("/api/admin/users", async (req,res)=>{
-  if(req.query.pass !== ADMIN_PASS){
-    return res.json([]);
-  }
-
+  if(req.query.pass !== ADMIN_PASS) return res.json([]);
   let users = await User.find().sort({balance:-1}).limit(100);
   res.json(users);
 });
 
-// 🔥 single user
+// single user
 app.get("/api/admin/user/:id", async (req,res)=>{
-  if(req.query.pass !== ADMIN_PASS){
-    return res.json({});
-  }
-
+  if(req.query.pass !== ADMIN_PASS) return res.json({});
   let user = await User.findOne({userId:req.params.id});
   res.json(user);
 });
 
-// 🔥 withdraw list
+// withdraw list
 app.get("/api/admin/withdraws",(req,res)=>{
-  if(req.query.pass !== ADMIN_PASS){
-    return res.json([]);
-  }
+  if(req.query.pass !== ADMIN_PASS) return res.json([]);
   res.json(withdraws);
 });
 
-// ✅ approve
+// approve
 app.post("/api/admin/approve", async (req,res)=>{
   const { index, pass } = req.body;
 
-  if(pass !== ADMIN_PASS){
-    return res.json({success:false});
-  }
+  if(pass !== ADMIN_PASS) return res.json({success:false});
 
-  if(!withdraws[index]){
-    return res.json({success:false});
-  }
+  if(!withdraws[index]) return res.json({success:false});
 
   withdraws[index].status = "approved";
   res.json({success:true});
 });
 
-// ❌ reject
+// reject
 app.post("/api/admin/reject", async (req,res)=>{
   const { index, pass } = req.body;
 
-  if(pass !== ADMIN_PASS){
-    return res.json({success:false});
-  }
+  if(pass !== ADMIN_PASS) return res.json({success:false});
 
   let w = withdraws[index];
-  if(!w){
-    return res.json({success:false});
-  }
+  if(!w) return res.json({success:false});
 
   let user = await User.findOne({userId:w.id});
   if(user){
@@ -212,21 +203,15 @@ app.post("/api/admin/reject", async (req,res)=>{
 
 // ================= LEADERBOARD =================
 
-// 🔥 Top Balance Users
+// top earners
 app.get("/api/leaderboard", async (req,res)=>{
-  let users = await User.find()
-  .sort({ balance: -1 })
-  .limit(20);
-
+  let users = await User.find().sort({balance:-1}).limit(20);
   res.json(users);
 });
 
-// 🔥 Top Referral Users
+// top referrals
 app.get("/api/leaderboard/ref", async (req,res)=>{
-  let users = await User.find()
-  .sort({ referrals: -1 })
-  .limit(20);
-
+  let users = await User.find().sort({referrals:-1}).limit(20);
   res.json(users);
 });
 
