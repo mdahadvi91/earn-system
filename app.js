@@ -9,36 +9,30 @@ app.use(express.json());
 
 // ================= DB =================
 mongoose.connect(process.env.MONGO_URI)
-.then(()=>console.log("DB Connected"))
-.catch(err=>console.log(err));
+.then(()=>console.log("✅ DB Connected"))
+.catch(err=>console.log("❌ DB Error:", err));
 
 // ================= MODEL =================
 const User = mongoose.model("User", new mongoose.Schema({
   userId: String,
   balance: { type: Number, default: 0 },
-
   referrals: { type: Number, default: 0 },
   refBy: String,
-
   lastClaim: Number,
   dailyEarn: { type: Number, default: 0 },
   lastDay: String,
-
-  banned: { type: Boolean, default: false }
+  totalAds: { type: Number, default: 0 }
 }));
 
 // ================= STATIC =================
 app.use(express.static(path.join(__dirname,"web")));
-app.get("/sw.js", (req, res) => {
-  res.sendFile(path.join(__dirname, "sw.js"));
-});
 
 app.get("/", (req,res)=>{
   res.sendFile(path.join(__dirname,"web/app.html"));
 });
 
 // ================= USER =================
-app.get("/user/:id", async (req,res)=>{
+app.get("/api/user/:id", async (req,res)=>{
   let { ref } = req.query;
 
   let user = await User.findOne({userId:req.params.id});
@@ -49,6 +43,7 @@ app.get("/user/:id", async (req,res)=>{
       refBy: ref || null
     });
 
+    // 🔥 referral bonus
     if(ref && ref !== req.params.id){
       let r = await User.findOne({userId:ref});
       if(r){
@@ -62,75 +57,148 @@ app.get("/user/:id", async (req,res)=>{
   res.json(user);
 });
 
-// ================= REWARD (ANTI-CHEAT) =================
-app.post("/reward", async (req,res)=>{
+// ================= REWARD =================
+app.post("/api/reward", async (req,res)=>{
   const { id } = req.body;
 
   let user = await User.findOne({userId:id});
   if(!user) user = await User.create({userId:id});
 
-  if(user.banned){
-    return res.json({error:"Blocked"});
-  }
-
   const now = Date.now();
   const today = new Date().toDateString();
 
+  // 🔄 reset daily
   if(user.lastDay !== today){
     user.dailyEarn = 0;
     user.lastDay = today;
   }
 
+  // ❌ cooldown (15 sec)
   if(user.lastClaim && (now - user.lastClaim < 15000)){
-    return res.json({error:"Wait 15 sec"});
+    return res.json({success:false, msg:"⏳ Wait 15 sec"});
   }
 
+  // ❌ daily limit
   if(user.dailyEarn >= 0.05){
-    return res.json({error:"Daily limit reached"});
+    return res.json({success:false, msg:"🚫 Daily limit reached"});
   }
 
-  // 🔥 random reward
-  let reward = (Math.random() * 0.002 + 0.001);
+  // 💰 random reward
+  const reward = (Math.random()*0.002 + 0.001);
 
   user.balance += reward;
   user.dailyEarn += reward;
+  user.totalAds += 1;
   user.lastClaim = now;
 
   await user.save();
 
-  res.json({success:true, reward});
+  res.json({
+    success:true,
+    msg:`💰 Earned ${reward.toFixed(4)} USDT`,
+    reward:reward
+  });
 });
 
 // ================= WITHDRAW =================
 let withdraws = [];
 
-app.post("/withdraw", async (req,res)=>{
-  const { id, amount, number } = req.body;
+app.post("/api/withdraw", async (req,res)=>{
+  const { id, amount, address } = req.body;
 
   let user = await User.findOne({userId:id});
 
   if(!user || user.balance < amount){
-    return res.json({error:"Low balance"});
+    return res.json({success:false, msg:"❌ Low balance"});
   }
 
   if(amount < 1){
-    return res.json({error:"Min 1 USDT"});
+    return res.json({success:false, msg:"⚠ Min 1 USDT"});
   }
 
   user.balance -= amount;
   await user.save();
 
-  withdraws.push({id, amount, number, status:"pending"});
+  withdraws.push({
+    id,
+    amount,
+    address,
+    status:"pending",
+    time: new Date()
+  });
 
-  res.json({success:true});
+  res.json({success:true, msg:"✅ Withdraw request sent"});
 });
 
 // ================= ADMIN =================
-const PASS = process.env.ADMIN_PASS;
+const ADMIN_PASS = process.env.ADMIN_PASS || "12345";
 
-app.get("/admin/withdraws",(req,res)=>{
-  if(req.query.pass !== PASS) return res.json([]);
+// 🔥 all users
+app.get("/api/admin/users", async (req,res)=>{
+  if(req.query.pass !== ADMIN_PASS){
+    return res.json([]);
+  }
+
+  let users = await User.find().sort({balance:-1}).limit(100);
+  res.json(users);
+});
+
+// 🔥 single user
+app.get("/api/admin/user/:id", async (req,res)=>{
+  if(req.query.pass !== ADMIN_PASS){
+    return res.json({});
+  }
+
+  let user = await User.findOne({userId:req.params.id});
+  res.json(user);
+});
+
+// 🔥 withdraw list
+app.get("/api/admin/withdraws",(req,res)=>{
+  if(req.query.pass !== ADMIN_PASS){
+    return res.json([]);
+  }
   res.json(withdraws);
+});
+
+// ✅ approve
+app.post("/api/admin/approve", async (req,res)=>{
+  const { index, pass } = req.body;
+
+  if(pass !== ADMIN_PASS){
+    return res.json({success:false});
+  }
+
+  if(!withdraws[index]){
+    return res.json({success:false});
+  }
+
+  withdraws[index].status = "approved";
+  res.json({success:true});
+});
+
+// ❌ reject
+app.post("/api/admin/reject", async (req,res)=>{
+  const { index, pass } = req.body;
+
+  if(pass !== ADMIN_PASS){
+    return res.json({success:false});
+  }
+
+  let w = withdraws[index];
+  if(!w){
+    return res.json({success:false});
+  }
+
+  let user = await User.findOne({userId:w.id});
+  if(user){
+    user.balance += w.amount;
+    await user.save();
+  }
+
+  w.status = "rejected";
+
+  res.json({success:true});
 });
 
 // ================= BOT =================
@@ -138,4 +206,4 @@ const bot = require("./bot");
 app.use(bot);
 
 // ================= START =================
-app.listen(3000,()=>console.log("Server Live 🚀"));
+app.listen(3000,()=>console.log("🚀 Server Running"));
