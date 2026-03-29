@@ -27,8 +27,45 @@ const User = mongoose.model("User", new mongoose.Schema({
   totalAds: { type: Number, default: 0 },
   ip: String,
   device: String,
-  lastCPA: Number
+  lastCPA: Number,
+
+  suspicious: { type: Number, default: 0 },
+  blocked: { type: Boolean, default: false }
 }));
+
+async function checkFraud(user, ip){
+  // 🚫 blocked user
+  if(user.blocked){
+    return "🚫 Account blocked";
+  }
+
+  // 🚫 same IP too many users
+  let count = await User.countDocuments({ip: ip});
+  if(count > 3){
+    user.suspicious += 1;
+  }
+
+  // 🚫 too fast click
+  if(user.lastClaim && (Date.now() - user.lastClaim < 5000)){
+    user.suspicious += 1;
+  }
+
+  // 🚫 too many ads in short time
+  if(user.totalAds > 50 && user.dailyEarn < 0.01){
+    user.suspicious += 1;
+  }
+
+  // 🚫 auto block
+  if(user.suspicious >= 5){
+    user.blocked = true;
+    await user.save();
+    return "🚫 Suspicious activity blocked";
+  }
+
+  await user.save();
+  return null;
+}
+
 
 // ================= STATIC =================
 app.use(express.static(path.join(__dirname,"web")));
