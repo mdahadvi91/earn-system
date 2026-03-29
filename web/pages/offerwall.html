@@ -3,7 +3,7 @@
   <h2>💰 Extra Earn</h2>
   <p>Complete offers & earn real USDT 🚀</p>
 
-  <!-- 🔥 Monetag ONLY HERE -->
+  <!-- Monetag ONLY HERE -->
   <script src="https://quge5.com/88/tag.min.js" data-zone="224604" async data-cfasync="false"></script>
 
   <div id="offersBox"></div>
@@ -11,9 +11,18 @@
 </div>
 
 <script>
-function loadOffers(){
+function getUserId(){
+  let uid = localStorage.getItem("uid");
 
-  let uid = localStorage.getItem("uid") || user;
+  if(!uid){
+    uid = Math.floor(Math.random()*1000000);
+    localStorage.setItem("uid", uid);
+  }
+
+  return uid;
+}
+
+function loadOffers(){
 
   let offers = [
     {
@@ -22,14 +31,9 @@ function loadOffers(){
       link: "https://www.cpagrip.com/show.php?l=12345"
     },
     {
-      name: "🎮 Play Game Offer",
+      name: "🎮 Play Game",
       reward: "Up to 1.8 USDT",
       link: "https://www.cpagrip.com/show.php?l=67890"
-    },
-    {
-      name: "📱 Install App",
-      reward: "Up to 3.0 USDT",
-      link: "https://www.cpagrip.com/show.php?l=54321"
     }
   ];
 
@@ -39,11 +43,8 @@ function loadOffers(){
     html += `
       <div class="card">
         <h3>${o.name}</h3>
-        <p>💰 ${o.reward}</p>
-
-        <button class="btn" onclick="startOffer('${o.link}')">
-          Start Now 🚀
-        </button>
+        <p>${o.reward}</p>
+        <button class="btn" onclick="startOffer('${o.link}')">Start</button>
       </div>
     `;
   });
@@ -51,15 +52,10 @@ function loadOffers(){
   document.getElementById("offersBox").innerHTML = html;
 }
 
-// 🔥 CPA START (TRACKING FIXED)
 function startOffer(link){
-
-  let uid = localStorage.getItem("uid") || user;
-
-  let finalLink = link + "&tracking_id=" + uid;
-
-  window.open(finalLink, "_blank");
+  let uid = getUserId();
+  window.open(link + "&tracking_id=" + uid, "_blank");
 }
 
-loadOffers();
+setTimeout(loadOffers, 300);
 </script>
