@@ -3,8 +3,11 @@ const express = require("express");
 
 const router = express.Router();
 
-const bot = new TelegramBot(process.env.BOT_TOKEN);
+const bot = new TelegramBot(process.env.BOT_TOKEN, {
+  webHook: true
+});
 
+// webhook set
 bot.setWebHook(`${process.env.APP_URL}/bot${process.env.BOT_TOKEN}`);
 
 router.post(`/bot${process.env.BOT_TOKEN}`, (req,res)=>{
@@ -12,7 +15,7 @@ router.post(`/bot${process.env.BOT_TOKEN}`, (req,res)=>{
   res.sendStatus(200);
 });
 
-// start
+// start with ref
 bot.onText(/\/start (.+)/, (msg, match)=>{
   const ref = match[1];
 
@@ -32,6 +35,7 @@ Start earning 👇`,
   });
 });
 
+// normal start
 bot.onText(/\/start/, (msg)=>{
   bot.sendMessage(msg.chat.id,
 `💰 Earn Pro`,
