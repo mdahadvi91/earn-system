@@ -98,7 +98,8 @@ app.post("/api/reward", async (req,res)=>{
   user.dailyEarn += reward;
   user.totalAds += 1;
   user.lastClaim = now;
-
+  user.ip = ip;
+user.device = req.body.device;
   await user.save();
 
   res.json({
