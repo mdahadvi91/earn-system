@@ -14,6 +14,7 @@ mongoose.connect(process.env.MONGO_URI)
 
 // ================= MODEL =================
 const User = mongoose.model("User", new mongoose.Schema({
+const User = mongoose.model("User", new mongoose.Schema({
   userId: String,
   balance: { type: Number, default: 0 },
   referrals: { type: Number, default: 0 },
@@ -24,8 +25,11 @@ const User = mongoose.model("User", new mongoose.Schema({
   totalAds: { type: Number, default: 0 },
 
   ip: String,
-  device: String
+  device: String,
+
+  lastCPA: Number // 🔥 add this
 }));
+
 
 // ================= CPA AUTO REWARD (SECURE) =================
 const crypto = require("crypto");
