@@ -215,6 +215,28 @@ app.get("/api/leaderboard/ref", async (req,res)=>{
   res.json(users);
 });
 
+// ================= OFFERWALL =================
+
+app.get("/api/offers",(req,res)=>{
+  res.json([
+    {
+      title: "📱 Install App & Earn",
+      reward: 0.10,
+      link: "https://your-offer-link-1.com"
+    },
+    {
+      title: "📝 Signup & Earn",
+      reward: 0.20,
+      link: "https://your-offer-link-2.com"
+    },
+    {
+      title: "🎮 Play Game",
+      reward: 0.15,
+      link: "https://your-offer-link-3.com"
+    }
+  ]);
+});
+
 // ================= BOT =================
 const bot = require("./bot");
 app.use(bot);
