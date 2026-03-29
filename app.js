@@ -14,7 +14,6 @@ mongoose.connect(process.env.MONGO_URI)
 
 // ================= MODEL =================
 const User = mongoose.model("User", new mongoose.Schema({
-const User = mongoose.model("User", new mongoose.Schema({
   userId: String,
   balance: { type: Number, default: 0 },
   referrals: { type: Number, default: 0 },
@@ -27,7 +26,7 @@ const User = mongoose.model("User", new mongoose.Schema({
   ip: String,
   device: String,
 
-  lastCPA: Number // 🔥 add this
+  lastCPA: Number
 }));
 
 
