@@ -14,8 +14,6 @@ mongoose.connect(process.env.MONGO_URI)
 
 // ================= MODEL =================
 const User = mongoose.model("User", new mongoose.Schema({
-  ip: String,
-  device: String,
   userId: String,
   balance: { type: Number, default: 0 },
   referrals: { type: Number, default: 0 },
@@ -23,7 +21,10 @@ const User = mongoose.model("User", new mongoose.Schema({
   lastClaim: Number,
   dailyEarn: { type: Number, default: 0 },
   lastDay: String,
-  totalAds: { type: Number, default: 0 }
+  totalAds: { type: Number, default: 0 },
+
+  ip: String,
+  device: String
 }));
 
 // ================= STATIC =================
