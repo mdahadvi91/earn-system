@@ -42,33 +42,105 @@ body{
   justify-content:space-around;
   padding:10px;
 }
+.page{
+  display:none;
+  padding:15px;
+  margin-bottom:70px;
+}
 </style>
 </head>
 
 <body>
 
-<!-- Adsterra ONLY -->
+<!-- Adsterra -->
 <script src="https://pl29010405.profitablecpmratenetwork.com/03/60/2c/03602c436b7c471195a5771cbb6aed7a.js"></script>
 
 <div class="top">
 User ID: <span id="uid"></span>
 </div>
 
-<div id="content"></div>
+<!-- ================= PAGES ================= -->
 
+<div id="task" class="page" style="display:block;">
+  <h3>🎥 Task</h3>
+  <div class="btn" onclick="alert('Watch ad system ready')">Watch Ad</div>
+</div>
+
+<div id="invite" class="page">
+  <h3>👥 Invite</h3>
+  <p>Invite system ready</p>
+</div>
+
+<!-- 🔥 WITHDRAW PAGE (ADD HOISE) -->
+<div id="withdraw" class="page">
+  <h3>💸 Withdraw</h3>
+
+  <select id="method">
+    <option value="bkash">Bkash</option>
+    <option value="nagad">Nagad</option>
+    <option value="binance">Binance</option>
+  </select>
+
+  <input id="account" placeholder="Number / Wallet">
+  <input id="amount" placeholder="Amount">
+
+  <div class="btn" onclick="withdraw()">Submit</div>
+</div>
+
+<div id="leaderboard" class="page">
+  <h3>🏆 Leaderboard</h3>
+</div>
+
+<div id="offerwall" class="page">
+  <h3>🔥 Offerwall</h3>
+</div>
+
+<!-- ================= NAV ================= -->
 <div class="nav">
   <div onclick="showPage('task')">🏠</div>
   <div onclick="showPage('invite')">👥</div>
   <div onclick="showPage('withdraw')">💰</div>
   <div onclick="showPage('leaderboard')">🏆</div>
-  <div onclick="showPage('admin')">👑</div>
   <div onclick="showPage('offerwall')">🔥</div>
 </div>
 
-<script src="js/main.js"></script>
-<script src="js/user.js"></script>
-<script src="js/ads.js"></script>
-<script src="js/withdraw.js"></script>
+<!-- ================= SCRIPT ================= -->
+<script>
+
+let tg = window.Telegram.WebApp;
+let user = tg.initDataUnsafe.user?.id || "test_user";
+
+document.getElementById("uid").innerText = user;
+
+// page switch
+function showPage(page){
+  document.querySelectorAll(".page").forEach(p=>p.style.display="none");
+  document.getElementById(page).style.display="block";
+}
+
+// 🔥 WITHDRAW FUNCTION (ADD HOISE)
+function withdraw(){
+  let amount = document.getElementById("amount").value;
+  let account = document.getElementById("account").value;
+  let method = document.getElementById("method").value;
+
+  fetch("/api/withdraw",{
+    method:"POST",
+    headers:{"Content-Type":"application/json"},
+    body:JSON.stringify({
+      id:user,
+      amount,
+      account,
+      method
+    })
+  })
+  .then(r=>r.json())
+  .then(d=>{
+    alert(d.msg);
+  });
+}
+
+</script>
 
 </body>
 </html>
