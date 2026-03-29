@@ -1,10 +1,14 @@
-let tg = window.parent.Telegram.WebApp;
-let user = tg.initDataUnsafe.user.id;
+fetch("/user/"+user)
+.then(r=>r.json())
+.then(d=>{
+  document.getElementById("refs").innerText = d.referrals;
+  document.getElementById("link").value =
+    "https://t.me/YOUR_BOT?start=" + user;
+});
 
-let link = document.getElementById("link");
-link.value = "https://t.me/YOUR_BOT?start="+user;
-
-function copy(){
-navigator.clipboard.writeText(link.value);
-alert("Copied");
+function copyLink(){
+  navigator.clipboard.writeText(
+    document.getElementById("link").value
+  );
+  alert("Copied");
 }
