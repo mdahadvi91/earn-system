@@ -49,3 +49,8 @@ bot.onText(/\/balance/, (msg) => {
 });
 
 module.exports = router;
+
+bot.onText(/\/ref/, (msg) => {
+  const link = `${URL}?ref=${msg.chat.id}`;
+  bot.sendMessage(msg.chat.id, "Invite:\n"+link);
+});
