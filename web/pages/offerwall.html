@@ -1,7 +1,7 @@
-<div style="padding:15px; color:white;">
+<div style="padding:15px;">
 
-  <h2>💰 Earn More (OfferWall)</h2>
-  <p>Complete offers & earn real USDT instantly 🔥</p>
+  <h2>💰 OfferWall</h2>
+  <p>Complete offers & earn real USDT 🚀</p>
 
   <div id="offersBox"></div>
 
@@ -10,7 +10,7 @@
 <script>
 function loadOffers(){
 
-  let uid = user; // telegram user id
+  let uid = user;
 
   let offers = [
     {
@@ -19,12 +19,12 @@ function loadOffers(){
       link: "https://www.cpagrip.com/show.php?l=12345"
     },
     {
-      name: "🎮 Play & Earn Game",
+      name: "🎮 Play Game Offer",
       reward: "Up to 1.8 USDT",
       link: "https://www.cpagrip.com/show.php?l=67890"
     },
     {
-      name: "📱 App Install Offer",
+      name: "📱 Install App",
       reward: "Up to 3.0 USDT",
       link: "https://www.cpagrip.com/show.php?l=54321"
     }
@@ -32,27 +32,12 @@ function loadOffers(){
 
   let html = "";
 
-  offers.forEach((offer, i) => {
+  offers.forEach(o=>{
     html += `
-      <div style="
-        background:#111;
-        margin-top:15px;
-        padding:15px;
-        border-radius:10px;
-        box-shadow:0 0 10px #00ffcc33;
-      ">
-        <h3>${offer.name}</h3>
-        <p>💰 ${offer.reward}</p>
-
-        <button onclick="startOffer('${offer.link}')"
-        style="
-          padding:10px;
-          width:100%;
-          background:#00ffcc;
-          border:none;
-          border-radius:8px;
-          font-weight:bold;
-        ">
+      <div class="card">
+        <h3>${o.name}</h3>
+        <p>💰 ${o.reward}</p>
+        <button class="btn" onclick="startOffer('${o.link}')">
           Start Now 🚀
         </button>
       </div>
@@ -62,15 +47,11 @@ function loadOffers(){
   document.getElementById("offersBox").innerHTML = html;
 }
 
-// 🔥 OPEN OFFER WITH TRACKING
 function startOffer(link){
   let uid = user;
-
-  let finalLink = link + "&tracking_id=" + uid;
-
-  window.open(finalLink, "_blank");
+  let final = link + "&tracking_id=" + uid;
+  window.open(final, "_blank");
 }
 
-// auto load
 loadOffers();
 </script>
