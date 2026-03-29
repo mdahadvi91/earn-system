@@ -4,20 +4,22 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <script src="https://telegram.org/js/telegram-web-app.js"></script>
 
+<title>Earn Pro</title>
+
 <style>
 body{
   margin:0;
   font-family:sans-serif;
-  background:#0f0c29;
+  background:#0f172a;
   color:#fff;
 }
 
-/* top */
+/* header */
 .top{
   margin:10px;
   padding:20px;
-  background:linear-gradient(45deg,#312e81,#7c3aed);
   border-radius:20px;
+  background:linear-gradient(45deg,#1e293b,#7c3aed);
 }
 
 .balance{
@@ -29,30 +31,17 @@ body{
 .card{
   margin:10px;
   padding:15px;
-  background:#1e1b4b;
+  background:#1e293b;
   border-radius:20px;
 }
 
 /* button */
 .btn{
-  background:linear-gradient(45deg,#9333ea,#6366f1);
   padding:15px;
-  text-align:center;
   border-radius:12px;
+  background:linear-gradient(45deg,#9333ea,#4f46e5);
+  text-align:center;
   margin-top:10px;
-}
-
-/* progress */
-.bar{
-  height:6px;
-  background:#020617;
-  border-radius:10px;
-  overflow:hidden;
-}
-.fill{
-  height:100%;
-  background:#22c55e;
-  width:0%;
 }
 
 /* nav */
@@ -60,9 +49,9 @@ body{
   position:fixed;
   bottom:0;
   width:100%;
+  background:#020617;
   display:flex;
   justify-content:space-around;
-  background:#020617;
   padding:10px;
 }
 </style>
@@ -78,49 +67,51 @@ Balance: <span class="balance" id="bal">0</span> USDT
 
 <!-- TASK -->
 <div id="task" class="card">
+<h3>🎥 Watch Ads & Earn</h3>
 
-<h3>⚡ Quick Ads</h3>
-
-<p>Daily Progress</p>
-<div class="bar"><div id="bar" class="fill"></div></div>
+<p>Reward per ad: 0.001 – 0.003 USDT</p>
 
 <div class="btn" onclick="watch()">▶ Watch Ad</div>
 
-<!-- REAL AD -->
-<div id="adbox" style="margin-top:10px">
-<script type='text/javascript' src='//plxxxx.adsterra.com/...'></script>
+<!-- REAL ADS PLACE -->
+<div style="margin-top:10px">
+<!-- Replace this with your Adsterra code -->
+<script src="//your-adsterra-script.js"></script>
 </div>
 
+</div>
+
+<!-- OFFER -->
+<div id="offer" class="card" style="display:none">
+<h3>🔥 Offers (High Earning)</h3>
+<div id="offers"></div>
 </div>
 
 <!-- INVITE -->
 <div id="invite" class="card" style="display:none">
-
-<h3>👥 Referral</h3>
+<h3>👥 Invite & Earn</h3>
 
 <input id="link" style="width:100%;padding:10px;border-radius:10px">
 
-<p>Total: <span id="refs">0</span></p>
+<p>Total Referrals: <span id="refs">0</span></p>
 
 <div class="btn" onclick="copy()">Copy Link</div>
-
 </div>
 
 <!-- WITHDRAW -->
 <div id="withdraw" class="card" style="display:none">
-
 <h3>💰 Withdraw USDT</h3>
 
 <input id="amount" placeholder="Amount" style="width:100%;margin:5px 0">
-<input id="addr" placeholder="Wallet Address" style="width:100%;margin:5px 0">
+<input id="addr" placeholder="USDT Wallet Address" style="width:100%;margin:5px 0">
 
-<div class="btn" onclick="wd()">Withdraw</div>
-
+<div class="btn" onclick="wd()">Request Withdraw</div>
 </div>
 
 <!-- NAV -->
 <div class="nav">
 <div onclick="show('task')">🏠</div>
+<div onclick="show('offer')">🔥</div>
 <div onclick="show('invite')">👥</div>
 <div onclick="show('withdraw')">💰</div>
 </div>
@@ -129,27 +120,22 @@ Balance: <span class="balance" id="bal">0</span> USDT
 let tg = window.Telegram.WebApp;
 let user = tg.initDataUnsafe.user.id;
 
-uid.innerText=user;
+uid.innerText = user;
 
-let daily=0;
-
-// load
+// LOAD USER
 function load(){
 fetch("/user/"+user)
 .then(r=>r.json())
 .then(d=>{
-bal.innerText=d.balance;
-refs.innerText=d.referrals;
-link.value="https://t.me/YOUR_BOT?start="+user;
-
-daily=d.dailyEarn || 0;
-bar.style.width=(daily/0.05*100)+"%";
+bal.innerText = d.balance.toFixed(4);
+refs.innerText = d.referrals;
+link.value = "https://t.me/YOUR_BOT?start=" + user;
 });
 }
 
-// watch ad
+// WATCH AD
 function watch(){
-alert("Watch full ad");
+alert("Watch full ad (15 sec)");
 
 setTimeout(()=>{
 fetch("/reward",{
@@ -160,7 +146,7 @@ body:JSON.stringify({id:user})
 .then(r=>r.json())
 .then(d=>{
 if(d.success){
-alert("Earned 0.002 USDT");
+alert("Earned "+d.reward.toFixed(4)+" USDT");
 }else{
 alert(d.error);
 }
@@ -169,7 +155,28 @@ load();
 },15000);
 }
 
-// withdraw
+// OFFERS
+function loadOffers(){
+fetch("/offers")
+.then(r=>r.json())
+.then(data=>{
+offers.innerHTML="";
+data.forEach(o=>{
+offers.innerHTML+=`
+<div class="card">
+${o.title}<br>
+Reward: ${o.reward} USDT
+<div class="btn" onclick="go('${o.link}')">Start</div>
+</div>`;
+});
+});
+}
+
+function go(link){
+window.open(link);
+}
+
+// WITHDRAW
 function wd(){
 fetch("/withdraw",{
 method:"POST",
@@ -182,22 +189,26 @@ number:addr.value
 })
 .then(r=>r.json())
 .then(d=>{
-alert(d.success?"Requested":"Error");
+alert(d.success?"Request Sent":"Error");
 });
 }
 
-// copy
+// COPY
 function copy(){
 navigator.clipboard.writeText(link.value);
 alert("Copied");
 }
 
-// nav
+// NAV
 function show(x){
 task.style.display="none";
+offer.style.display="none";
 invite.style.display="none";
 withdraw.style.display="none";
+
 document.getElementById(x).style.display="block";
+
+if(x==="offer") loadOffers();
 }
 
 load();
