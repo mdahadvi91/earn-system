@@ -54,6 +54,11 @@ input, select{
   border-radius:10px;
   border:none;
 }
+.loading{
+  text-align:center;
+  margin-top:10px;
+  color:#facc15;
+}
 </style>
 </head>
 
@@ -67,11 +72,17 @@ User ID: <span id="uid"></span><br>
 Balance: <span id="bal">0</span> USDT
 </div>
 
+<!-- 📊 Analytics -->
+<div class="card">
+🎥 Ads Watched: <span id="adsWatched">0</span>
+</div>
+
 <!-- ================= PAGES ================= -->
 
 <div id="task" class="page" style="display:block;">
   <h3>🎥 Task</h3>
   <div class="btn" onclick="watchAd()">Watch Ad</div>
+  <div id="status" class="loading"></div>
 </div>
 
 <div id="invite" class="page">
@@ -122,12 +133,20 @@ let user = tg.initDataUnsafe.user?.id || "test_user";
 
 document.getElementById("uid").innerText = user;
 
-// 🔐 DEVICE ID (IMPORTANT)
+// 🔐 DEVICE ID
 let device = localStorage.getItem("device_id");
 if(!device){
   device = Math.random().toString(36).substring(2);
   localStorage.setItem("device_id", device);
 }
+
+// 📊 LOAD ANALYTICS
+let adCount = parseInt(localStorage.getItem("ad_count")) || 0;
+
+function updateAnalytics(){
+  document.getElementById("adsWatched").innerText = adCount;
+}
+updateAnalytics();
 
 // page switch
 function showPage(page){
@@ -147,25 +166,60 @@ function loadUser(){
   });
 }
 
-// 🔄 AUTO REFRESH
 setInterval(loadUser, 5000);
 loadUser();
 
-// 🎥 WATCH AD (reward)
+// 🎥 WATCH AD SYSTEM
+let lastAdTime = 0;
+
 function watchAd(){
-  fetch("/api/reward",{
-    method:"POST",
-    headers:{"Content-Type":"application/json"},
-    body:JSON.stringify({
-      id:user,
-      device:device
+
+  let now = Date.now();
+
+  if(now - lastAdTime < 15000){
+    alert("⏳ Wait 15 sec");
+    return;
+  }
+
+  lastAdTime = now;
+
+  document.getElementById("status").innerText = "🎥 Opening ad...";
+
+  // 🔥 OPEN AD
+  window.open("https://www.profitablecpmratenetwork.com/kxq650wd?key=11d1ec5f3d88b1d9689e0547e8b15dd1","_blank");
+
+  // ⏳ WAIT + REWARD
+  setTimeout(()=>{
+
+    document.getElementById("status").innerText = "💰 Getting reward...";
+
+    fetch("/api/reward",{
+      method:"POST",
+      headers:{"Content-Type":"application/json"},
+      body:JSON.stringify({
+        id:user,
+        device:device
+      })
     })
-  })
-  .then(r=>r.json())
-  .then(d=>{
-    alert(d.msg);
-    loadUser();
-  });
+    .then(r=>r.json())
+    .then(d=>{
+      alert(d.msg);
+
+      adCount++;
+      localStorage.setItem("ad_count", adCount);
+      updateAnalytics();
+
+      loadUser();
+
+      // 🔥 BONUS
+      if(adCount % 5 === 0){
+        alert("🔥 BONUS +0.005 USDT");
+      }
+
+      document.getElementById("status").innerText = "";
+    });
+
+  }, 10000);
 }
 
 // 💸 WITHDRAW
