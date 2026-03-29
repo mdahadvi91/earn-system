@@ -1,39 +1,33 @@
 let tg = window.Telegram.WebApp;
-let user = tg.initDataUnsafe.user?.id || "test_user";
+
+let user = tg?.initDataUnsafe?.user?.id || localStorage.getItem("uid");
+
+if(!user){
+  user = Math.floor(Math.random()*1000000);
+}
+
+localStorage.setItem("uid", user);
 
 document.getElementById("uid").innerText = user;
 
-// load first page
+// first page
 loadPage("task");
 
-// page loader
 function loadPage(page){
+
   fetch("/pages/" + page + ".html")
   .then(res => res.text())
   .then(html => {
+
     document.getElementById("content").innerHTML = html;
 
-    if(page === "task") initTask();
-    if(page === "admin"){}
-    if(page === "invite") initInvite();
-    if(page === "withdraw") initWithdraw();
-    if(page === "offer"){}
-    if(page === "offerwall"){}
-    if(page === "leaderboard"){}
+    if(page === "task" && typeof initTask === "function") initTask();
+    if(page === "invite" && typeof initInvite === "function") initInvite();
+    if(page === "withdraw" && typeof initWithdraw === "function") initWithdraw();
+
   });
 }
 
-// nav control
 function showPage(page){
   loadPage(page);
-}
-
-function showPage(page) {
-  if(page === "offer"){
-    window.location.href = "pages/offer.html";
-    return;
-  }
-
-  document.querySelectorAll(".page").forEach(p => p.style.display = "none");
-  document.getElementById(page).style.display = "block";
 }
