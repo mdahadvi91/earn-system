@@ -14,6 +14,7 @@ function loadPage(page){
     document.getElementById("content").innerHTML = html;
 
     if(page === "task") initTask();
+    if(page === "admin"){}
     if(page === "invite") initInvite();
     if(page === "withdraw") initWithdraw();
     if(page === "leaderboard"){}
