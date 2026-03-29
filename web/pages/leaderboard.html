@@ -1,0 +1,47 @@
+<h3>🏆 Leaderboard</h3>
+
+<button onclick="loadTop()">💰 Top Earners</button>
+<button onclick="loadRef()">👥 Top Referrals</button>
+
+<div id="board"></div>
+
+<script>
+function loadTop(){
+  fetch("/api/leaderboard")
+  .then(r=>r.json())
+  .then(data=>{
+    let html = "";
+
+    data.forEach((u,i)=>{
+      html += `
+      <div class="card">
+        #${i+1} 👤 ${u.userId}<br>
+        💰 ${u.balance.toFixed(4)} USDT
+      </div>`;
+    });
+
+    board.innerHTML = html;
+  });
+}
+
+function loadRef(){
+  fetch("/api/leaderboard/ref")
+  .then(r=>r.json())
+  .then(data=>{
+    let html = "";
+
+    data.forEach((u,i)=>{
+      html += `
+      <div class="card">
+        #${i+1} 👤 ${u.userId}<br>
+        👥 ${u.referrals} referrals
+      </div>`;
+    });
+
+    board.innerHTML = html;
+  });
+}
+
+// default load
+loadTop();
+</script>
