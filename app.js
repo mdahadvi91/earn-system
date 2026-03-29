@@ -336,6 +336,15 @@ app.get("/api/postback", async (req,res)=>{
   }
 });
 
+// ================= CPA LOGS (ADMIN) =================
+app.get("/api/admin/cpa", (req, res) => {
+  if (req.query.pass !== ADMIN_PASS) {
+    return res.json([]);
+  }
+
+  res.json(cpaLogs.reverse());
+});
+
 // ================= BOT =================
 const bot = require("./bot");
 app.use(bot);
