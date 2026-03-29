@@ -2,6 +2,7 @@ const express = require("express");
 const cors = require("cors");
 const path = require("path");
 const mongoose = require("mongoose");
+const fetch = require("node-fetch");
 
 const app = express();
 app.use(cors());
@@ -27,22 +28,19 @@ const User = mongoose.model("User", new mongoose.Schema({
   totalAds: { type: Number, default: 0 },
   ip: String,
   device: String,
+  deviceId: String,
   lastCPA: Number,
 
   suspicious: { type: Number, default: 0 },
   blocked: { type: Boolean, default: false }
 }));
 
-// ================= FRAUD CHECK =================
+// ================= FRAUD AI =================
 async function checkFraud(user, ip){
-  if(user.blocked){
-    return "🚫 Account blocked";
-  }
+  if(user.blocked) return "🚫 Account blocked";
 
   let count = await User.countDocuments({ip});
-  if(count > 3){
-    user.suspicious += 1;
-  }
+  if(count > 3) user.suspicious += 1;
 
   if(user.lastClaim && (Date.now() - user.lastClaim < 5000)){
     user.suspicious += 1;
@@ -60,6 +58,37 @@ async function checkFraud(user, ip){
 
   await user.save();
   return null;
+}
+
+// ================= DEVICE LOCK =================
+async function checkDevice(user, deviceId){
+  if(!deviceId) return null;
+
+  if(!user.deviceId){
+    user.deviceId = deviceId;
+    await user.save();
+    return null;
+  }
+
+  if(user.deviceId !== deviceId){
+    user.blocked = true;
+    await user.save();
+    return "🚫 Multiple device detected";
+  }
+
+  return null;
+}
+
+// ================= VPN CHECK =================
+async function checkVPN(ip){
+  try{
+    let res = await fetch(`http://ip-api.com/json/${ip}?fields=proxy,hosting`);
+    let data = await res.json();
+    if(data.proxy || data.hosting) return true;
+    return false;
+  }catch{
+    return false;
+  }
 }
 
 // ================= STATIC =================
@@ -104,11 +133,17 @@ app.post("/api/reward", async (req,res)=>{
   let user = await User.findOne({userId:id});
   if(!user) user = await User.create({userId:id});
 
-  // 🔥 FRAUD CHECK
+  // 🔥 FRAUD
   let fraud = await checkFraud(user, ip);
-  if(fraud){
-    return res.json({success:false, msg: fraud});
-  }
+  if(fraud) return res.json({success:false, msg: fraud});
+
+  // 🔥 DEVICE
+  let deviceCheck = await checkDevice(user, device);
+  if(deviceCheck) return res.json({success:false, msg: deviceCheck});
+
+  // 🔥 VPN
+  let vpn = await checkVPN(ip);
+  if(vpn) return res.json({success:false, msg:"🚫 VPN not allowed"});
 
   const now = Date.now();
   const today = new Date().toDateString();
@@ -202,8 +237,6 @@ app.post("/api/admin/approve", async (req,res)=>{
   }
 
   w.status = "approved";
-
-  console.log("✅ APPROVED:", w.id, w.amount);
 
   res.json({success:true});
 });
