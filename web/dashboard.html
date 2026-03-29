@@ -1,188 +1,34 @@
-<!DOCTYPE html>
-<html>
-<head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Earn Pro</title>
+<h2>💰 Dashboard</h2>
+<h3 id="bal"></h3>
 
-<script src="https://telegram.org/js/telegram-web-app.js"></script>
-
-<style>
-body{
-  margin:0;
-  font-family:sans-serif;
-  background: radial-gradient(circle,#1e293b,#020617);
-  color:#fff;
-}
-
-.container{padding:15px;}
-
-.card{
-  background: rgba(255,255,255,0.05);
-  backdrop-filter: blur(15px);
-  border-radius:20px;
-  padding:20px;
-  margin-bottom:15px;
-  box-shadow:0 0 20px rgba(0,0,0,0.6);
-}
-
-.balance{
-  font-size:30px;
-  color:#4ade80;
-  font-weight:bold;
-}
-
-.btn{
-  display:block;
-  padding:16px;
-  margin-top:15px;
-  text-align:center;
-  border-radius:15px;
-  background: linear-gradient(45deg,#9333ea,#4f46e5);
-  color:#fff;
-  font-weight:bold;
-}
-
-.bottom{
-  position:fixed;
-  bottom:0;
-  width:100%;
-  display:flex;
-  justify-content:space-around;
-  background: rgba(0,0,0,0.85);
-  padding:10px;
-}
-</style>
-
-</head>
-
-<body>
-
-<div class="container">
-
-<div class="card">
-  <h3>ID: <span id="uid">...</span></h3>
-  <p class="balance">৳ <span id="bal">0.00</span></p>
-  <p>👥 Referrals: <span id="ref">0</span></p>
-</div>
-
-<div class="card">
-  <h3>📺 Watch Ads</h3>
-  <div class="btn" onclick="watchAd()">▶ Start Earning</div>
-</div>
-
-</div>
-
-<div class="bottom">
-  <span onclick="go('dashboard.html')">🏠</span>
-  <span onclick="go('invite.html')">👥</span>
-  <span onclick="go('dashboard.html')">💰</span>
-  <span onclick="go('withdraw.html')">💸</span>
-</div>
+<button onclick="watch()">🎥 Watch Ad</button>
 
 <script>
+const API=location.origin;
+let user=localStorage.getItem("uid");
 
-// ================= CONFIG =================
-const API = "https://earn-system.onrender.com";
-
-// ================= TELEGRAM =================
-let tg = window.Telegram.WebApp;
-tg.expand();
-
-// ================= USER =================
-let user;
-
-if(tg.initDataUnsafe && tg.initDataUnsafe.user){
-  user = tg.initDataUnsafe.user.id;
-}else{
-  user = localStorage.getItem("uid") || Math.floor(Math.random()*100000);
-  localStorage.setItem("uid", user);
+function load(){
+fetch(API+"/user/"+user)
+.then(r=>r.json())
+.then(d=>bal.innerText="Balance: "+d.balance);
 }
 
-// ================= REF =================
-let ref = new URLSearchParams(window.location.search).get("ref");
+function watch(){
+alert("Watch Ad 15 sec");
 
-// ================= LOAD USER =================
-function loadUser(){
-
-  let url = API + "/user/" + user;
-
-  if(ref){
-    url += "?ref=" + ref;
-  }
-
-  fetch(url)
-  .then(res=>{
-    if(!res.ok) throw new Error();
-    return res.json();
-  })
-  .then(data=>{
-    uid.innerText = user;
-    bal.innerText = Number(data.balance).toFixed(2);
-    ref ? document.getElementById("ref").innerText = data.referred || 0 : "";
-  })
-  .catch(()=>{
-    setTimeout(loadUser,3000);
-  });
+setTimeout(()=>{
+fetch(API+"/reward",{
+method:"POST",
+headers:{'Content-Type':'application/json'},
+body:JSON.stringify({id:user})
+})
+.then(r=>r.json())
+.then(d=>{
+alert(d.success?"Earned":"Error");
+load();
+});
+},15000);
 }
 
-loadUser();
-
-// ================= AD SYSTEM =================
-function watchAd(){
-
-  const btn = document.querySelector(".btn");
-
-  btn.innerText = "⏳ Watching...";
-  btn.style.pointerEvents = "none";
-
-  let win = window.open("YOUR_AD_LINK", "_blank");
-  let start = Date.now();
-
-  let check = setInterval(()=>{
-
-    if(win.closed){
-
-      let time = (Date.now() - start) / 1000;
-
-      if(time >= 8){
-
-        fetch(API + "/reward",{
-          method:"POST",
-          headers:{"Content-Type":"application/json"},
-          body: JSON.stringify({id:user, amount:0.5})
-        })
-        .then(res=>res.json())
-        .then(data=>{
-
-          if(data.error){
-            alert("❌ " + data.error);
-          }else{
-            alert("💰 Earned 0.5 BDT");
-            loadUser();
-          }
-
-        });
-
-      }else{
-        alert("❌ Watch full ad");
-      }
-
-      btn.innerText = "▶ Start Earning";
-      btn.style.pointerEvents = "auto";
-
-      clearInterval(check);
-    }
-
-  },1000);
-}
-
-// ================= NAV =================
-function go(page){
-  window.location.href = "/" + page;
-}
-
+load();
 </script>
-
-</body>
-</html>
