@@ -1,25 +1,25 @@
-// main.js
-
 let tg = window.Telegram.WebApp;
-let user = tg.initDataUnsafe?.user?.id || "demo";
+let user = tg.initDataUnsafe.user?.id || "test_user";
 
 document.getElementById("uid").innerText = user;
 
-// page switch
-function showPage(page){
-  document.getElementById("content").innerHTML = "Loading...";
-  
-  fetch("pages/" + page + ".html")
+// load first page
+loadPage("task");
+
+// page loader
+function loadPage(page){
+  fetch("/pages/" + page + ".html")
   .then(res => res.text())
   .then(html => {
     document.getElementById("content").innerHTML = html;
 
-    // load js for that page
-    let script = document.createElement("script");
-    script.src = "js/" + page + ".js";
-    document.body.appendChild(script);
+    if(page === "task") initTask();
+    if(page === "invite") initInvite();
+    if(page === "withdraw") initWithdraw();
   });
 }
 
-// first load
-showPage("task");
+// nav control
+function showPage(page){
+  loadPage(page);
+}
