@@ -50,55 +50,36 @@ body{
 
 <body>
 
-<!-- 🔥 GLOBAL AD (Adsterra Social Bar) -->
+<!-- 🔥 GLOBAL AD -->
 <script src="https://pl29010405.profitablecpmratenetwork.com/03/60/2c/03602c436b7c471195a5771cbb6aed7a.js"></script>
 
-<!-- TOP -->
 <div class="top">
 ID: <span id="uid"></span><br>
 Balance: <span class="balance" id="bal">0</span> USDT
 </div>
 
-<!-- TASK -->
 <div id="task" class="card">
 <h3>🎥 Watch Ads & Earn</h3>
-
 <p>Reward per ad: 0.001 – 0.003 USDT</p>
-
 <div class="btn" onclick="watch()">▶ Watch Ad</div>
 </div>
 
-<!-- OFFER -->
-<div id="offer" class="card" style="display:none">
-<h3>🔥 Offers</h3>
-<div id="offers"></div>
-</div>
-
-<!-- INVITE -->
 <div id="invite" class="card" style="display:none">
 <h3>👥 Invite & Earn</h3>
-
 <input id="link" style="width:100%;padding:10px;border-radius:10px">
-
 <p>Total Referrals: <span id="refs">0</span></p>
-
 <div class="btn" onclick="copy()">Copy Link</div>
 </div>
 
-<!-- WITHDRAW -->
 <div id="withdraw" class="card" style="display:none">
 <h3>💰 Withdraw USDT</h3>
-
 <input id="amount" placeholder="Amount" style="width:100%;margin:5px 0">
 <input id="addr" placeholder="USDT Wallet Address" style="width:100%;margin:5px 0">
-
 <div class="btn" onclick="wd()">Request Withdraw</div>
 </div>
 
-<!-- NAV -->
 <div class="nav">
 <div onclick="show('task')">🏠</div>
-<div onclick="show('offer')">🔥</div>
 <div onclick="show('invite')">👥</div>
 <div onclick="show('withdraw')">💰</div>
 </div>
@@ -109,7 +90,6 @@ let user = tg.initDataUnsafe.user.id;
 
 uid.innerText = user;
 
-// LOAD USER
 function load(){
 fetch("/user/"+user)
 .then(r=>r.json())
@@ -120,17 +100,10 @@ link.value = "https://t.me/YOUR_BOT?start=" + user;
 });
 }
 
-// 🔥 FINAL WATCH FUNCTION (SMARTLINK + FUTURE READY)
 function watch(){
 
-  let ads = [
-    "https://smart-link-3224468",   // 🔥 Adsterra Smartlink
-    // "https://monetag-link.com"  // 🔥 future 2nd ad network
-  ];
-
-  let ad = ads[Math.floor(Math.random()*ads.length)];
-
-  window.open(ad);
+  // 🔥 REAL AD LINK
+  window.open("https://www.profitablecpmratenetwork.com/kxq650wd?key=11d1ec5f3d88b1d9689e0547e8b15dd1");
 
   setTimeout(()=>{
     fetch("/reward",{
@@ -150,28 +123,6 @@ function watch(){
   },15000);
 }
 
-// OFFERS
-function loadOffers(){
-fetch("/offers")
-.then(r=>r.json())
-.then(data=>{
-offers.innerHTML="";
-data.forEach(o=>{
-offers.innerHTML+=`
-<div class="card">
-${o.title}<br>
-Reward: ${o.reward} USDT
-<div class="btn" onclick="go('${o.link}')">Start</div>
-</div>`;
-});
-});
-}
-
-function go(link){
-window.open(link);
-}
-
-// WITHDRAW
 function wd(){
 fetch("/withdraw",{
 method:"POST",
@@ -188,22 +139,16 @@ alert(d.success?"Request Sent":"Error");
 });
 }
 
-// COPY
 function copy(){
 navigator.clipboard.writeText(link.value);
 alert("Copied");
 }
 
-// NAV
 function show(x){
 task.style.display="none";
-offer.style.display="none";
 invite.style.display="none";
 withdraw.style.display="none";
-
 document.getElementById(x).style.display="block";
-
-if(x==="offer") loadOffers();
 }
 
 load();
