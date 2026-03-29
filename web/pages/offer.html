@@ -1,0 +1,37 @@
+<h3>🔥 Offerwall (Big Earning)</h3>
+
+<div id="offers"></div>
+
+<script>
+function loadOffers(){
+  fetch("/api/offers")
+  .then(r=>r.json())
+  .then(data=>{
+    let html = "";
+
+    data.forEach(o=>{
+      html += `
+      <div class="card">
+        <b>${o.title}</b><br>
+        💰 Reward: ${o.reward} USDT<br>
+        <div class="btn" onclick="startOffer('${o.link}', ${o.reward})">
+          ▶ Start
+        </div>
+      </div>`;
+    });
+
+    offers.innerHTML = html;
+  });
+}
+
+function startOffer(link,reward){
+
+  window.open(link);
+
+  setTimeout(()=>{
+    alert("✅ Task completed! Reward will be added after verification");
+  },15000);
+}
+
+loadOffers();
+</script>
