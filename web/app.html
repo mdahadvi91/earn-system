@@ -13,29 +13,22 @@ body{
   background:#0f172a;
   color:#fff;
 }
-
-/* header */
 .top{
   margin:10px;
   padding:20px;
   border-radius:20px;
   background:linear-gradient(45deg,#1e293b,#7c3aed);
 }
-
 .balance{
   color:#22c55e;
   font-size:22px;
 }
-
-/* card */
 .card{
   margin:10px;
   padding:15px;
   background:#1e293b;
   border-radius:20px;
 }
-
-/* button */
 .btn{
   padding:15px;
   border-radius:12px;
@@ -43,8 +36,6 @@ body{
   text-align:center;
   margin-top:10px;
 }
-
-/* nav */
 .nav{
   position:fixed;
   bottom:0;
@@ -59,6 +50,9 @@ body{
 
 <body>
 
+<!-- 🔥 GLOBAL AD (Adsterra Social Bar) -->
+<script src="https://pl29010405.profitablecpmratenetwork.com/03/60/2c/03602c436b7c471195a5771cbb6aed7a.js"></script>
+
 <!-- TOP -->
 <div class="top">
 ID: <span id="uid"></span><br>
@@ -72,19 +66,11 @@ Balance: <span class="balance" id="bal">0</span> USDT
 <p>Reward per ad: 0.001 – 0.003 USDT</p>
 
 <div class="btn" onclick="watch()">▶ Watch Ad</div>
-
-<!-- REAL ADS PLACE -->
-<div style="margin-top:10px">
-<!-- Replace this with your Adsterra code -->
-<script src="https://pl29010405.profitablecpmratenetwork.com/03/60/2c/03602c436b7c471195a5771cbb6aed7a.js"></script>
-
-</div>
-
 </div>
 
 <!-- OFFER -->
 <div id="offer" class="card" style="display:none">
-<h3>🔥 Offers (High Earning)</h3>
+<h3>🔥 Offers</h3>
 <div id="offers"></div>
 </div>
 
@@ -134,26 +120,34 @@ link.value = "https://t.me/YOUR_BOT?start=" + user;
 });
 }
 
-// WATCH AD
+// 🔥 FINAL WATCH FUNCTION (SMARTLINK + FUTURE READY)
 function watch(){
-alert("Watch full ad (15 sec)");
 
-setTimeout(()=>{
-fetch("/reward",{
-method:"POST",
-headers:{'Content-Type':'application/json'},
-body:JSON.stringify({id:user})
-})
-.then(r=>r.json())
-.then(d=>{
-if(d.success){
-alert("Earned "+d.reward.toFixed(4)+" USDT");
-}else{
-alert(d.error);
-}
-load();
-});
-},15000);
+  let ads = [
+    "https://smart-link-3224468",   // 🔥 Adsterra Smartlink
+    // "https://monetag-link.com"  // 🔥 future 2nd ad network
+  ];
+
+  let ad = ads[Math.floor(Math.random()*ads.length)];
+
+  window.open(ad);
+
+  setTimeout(()=>{
+    fetch("/reward",{
+      method:"POST",
+      headers:{'Content-Type':'application/json'},
+      body:JSON.stringify({id:user})
+    })
+    .then(r=>r.json())
+    .then(d=>{
+      if(d.success){
+        alert("Earned "+d.reward.toFixed(4)+" USDT");
+      }else{
+        alert(d.error);
+      }
+      load();
+    });
+  },15000);
 }
 
 // OFFERS
