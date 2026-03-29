@@ -1,0 +1,87 @@
+<h3>👑 Admin Panel</h3>
+
+<input id="pass" placeholder="Enter Admin Password" style="width:100%;padding:10px">
+
+<div class="btn" onclick="loadUsers()">📊 Load Users</div>
+<div class="btn" onclick="loadWithdraws()">💰 Withdraw Requests</div>
+
+<div id="adminData"></div>
+
+<script>
+function loadUsers(){
+  let p = document.getElementById("pass").value;
+
+  fetch("/api/admin/users?pass="+p)
+  .then(r=>r.json())
+  .then(data=>{
+    let html = "<h4>Users</h4>";
+
+    data.forEach(u=>{
+      html += `
+      <div class="card">
+        👤 ${u.userId}<br>
+        💰 ${u.balance.toFixed(4)} USDT<br>
+        👥 ${u.referrals} refs<br>
+        🎥 ${u.totalAds} ads
+      </div>`;
+    });
+
+    adminData.innerHTML = html;
+  });
+}
+
+function loadWithdraws(){
+  let p = document.getElementById("pass").value;
+
+  fetch("/api/admin/withdraws?pass="+p)
+  .then(r=>r.json())
+  .then(data=>{
+    let html = "<h4>Withdraws</h4>";
+
+    data.forEach((w,i)=>{
+      html += `
+      <div class="card">
+        👤 ${w.id}<br>
+        💰 ${w.amount} USDT<br>
+        📍 ${w.address}<br>
+        📌 ${w.status}<br>
+
+        <button onclick="approve(${i})">✅ Approve</button>
+        <button onclick="reject(${i})">❌ Reject</button>
+      </div>`;
+    });
+
+    adminData.innerHTML = html;
+  });
+}
+
+function approve(i){
+  let p = document.getElementById("pass").value;
+
+  fetch("/api/admin/approve",{
+    method:"POST",
+    headers:{"Content-Type":"application/json"},
+    body:JSON.stringify({index:i, pass:p})
+  })
+  .then(r=>r.json())
+  .then(()=>{
+    alert("Approved");
+    loadWithdraws();
+  });
+}
+
+function reject(i){
+  let p = document.getElementById("pass").value;
+
+  fetch("/api/admin/reject",{
+    method:"POST",
+    headers:{"Content-Type":"application/json"},
+    body:JSON.stringify({index:i, pass:p})
+  })
+  .then(r=>r.json())
+  .then(()=>{
+    alert("Rejected");
+    loadWithdraws();
+  });
+}
+</script>
