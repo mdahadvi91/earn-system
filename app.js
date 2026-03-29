@@ -33,29 +33,25 @@ const User = mongoose.model("User", new mongoose.Schema({
   blocked: { type: Boolean, default: false }
 }));
 
+// ================= FRAUD CHECK =================
 async function checkFraud(user, ip){
-  // 🚫 blocked user
   if(user.blocked){
     return "🚫 Account blocked";
   }
 
-  // 🚫 same IP too many users
-  let count = await User.countDocuments({ip: ip});
+  let count = await User.countDocuments({ip});
   if(count > 3){
     user.suspicious += 1;
   }
 
-  // 🚫 too fast click
   if(user.lastClaim && (Date.now() - user.lastClaim < 5000)){
     user.suspicious += 1;
   }
 
-  // 🚫 too many ads in short time
   if(user.totalAds > 50 && user.dailyEarn < 0.01){
     user.suspicious += 1;
   }
 
-  // 🚫 auto block
   if(user.suspicious >= 5){
     user.blocked = true;
     await user.save();
@@ -65,7 +61,6 @@ async function checkFraud(user, ip){
   await user.save();
   return null;
 }
-
 
 // ================= STATIC =================
 app.use(express.static(path.join(__dirname,"web")));
@@ -84,7 +79,7 @@ app.get("/api/user/:id", async (req,res)=>{
     user = await User.create({
       userId:req.params.id,
       refBy: ref || null,
-      ip: ip
+      ip
     });
 
     if(ref && ref !== req.params.id){
@@ -108,6 +103,12 @@ app.post("/api/reward", async (req,res)=>{
 
   let user = await User.findOne({userId:id});
   if(!user) user = await User.create({userId:id});
+
+  // 🔥 FRAUD CHECK
+  let fraud = await checkFraud(user, ip);
+  if(fraud){
+    return res.json({success:false, msg: fraud});
+  }
 
   const now = Date.now();
   const today = new Date().toDateString();
@@ -142,14 +143,18 @@ app.post("/api/reward", async (req,res)=>{
   });
 });
 
-// ================= WITHDRAW SYSTEM =================
+// ================= WITHDRAW =================
 let withdraws = [];
 
-// request
 app.post("/api/withdraw", async (req,res)=>{
   const { id, amount, method, account } = req.body;
 
   let user = await User.findOne({userId:id});
+
+  if(user && user.blocked){
+    return res.json({success:false, msg:"🚫 Account blocked"});
+  }
+
   let amt = parseFloat(amount);
 
   if(!user || user.balance < amt){
@@ -175,13 +180,12 @@ app.post("/api/withdraw", async (req,res)=>{
   res.json({success:true, msg:"✅ Request sent"});
 });
 
-// get list
+// ================= ADMIN =================
 app.get("/api/admin/withdraws",(req,res)=>{
   if(req.query.pass !== ADMIN_PASS) return res.json([]);
   res.json(withdraws);
 });
 
-// approve
 app.post("/api/admin/approve", async (req,res)=>{
   const { index, pass } = req.body;
 
@@ -204,7 +208,6 @@ app.post("/api/admin/approve", async (req,res)=>{
   res.json({success:true});
 });
 
-// reject
 app.post("/api/admin/reject", (req,res)=>{
   const { index, pass } = req.body;
 
