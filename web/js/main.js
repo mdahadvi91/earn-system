@@ -17,6 +17,7 @@ function loadPage(page){
     if(page === "admin"){}
     if(page === "invite") initInvite();
     if(page === "withdraw") initWithdraw();
+    if(page === "offer"){}
     if(page === "leaderboard"){}
   });
 }
