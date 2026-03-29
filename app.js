@@ -63,6 +63,37 @@ app.get("/api/user/:id", async (req,res)=>{
   res.json(user);
 });
 
+// ================= CPA AUTO REWARD =================
+app.get("/api/cpa", async (req, res) => {
+  try {
+    const { user_id, amount } = req.query;
+
+    if (!user_id || !amount) {
+      return res.send("Invalid");
+    }
+
+    let user = await User.findOne({ userId: user_id });
+
+    if (!user) {
+      user = await User.create({ userId: user_id });
+    }
+
+    const reward = parseFloat(amount);
+
+    user.balance += reward;
+
+    await user.save();
+
+    console.log("✅ CPA Reward:", user_id, reward);
+
+    res.send("OK");
+
+  } catch (err) {
+    console.log("❌ CPA ERROR:", err);
+    res.send("ERROR");
+  }
+});
+
 // ================= REWARD =================
 app.post("/api/reward", async (req,res)=>{
   const { id, device } = req.body;
