@@ -30,6 +30,10 @@ const User = mongoose.model("User", new mongoose.Schema({
 // ================= STATIC =================
 app.use(express.static(path.join(__dirname,"web")));
 
+app.get("/sw.js",(req,res)=>{
+  res.sendFile(path.join(__dirname,"sw.js"));
+});
+
 app.get("/", (req,res)=>{
   res.sendFile(path.join(__dirname,"web/app.html"));
 });
