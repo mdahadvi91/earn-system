@@ -237,6 +237,37 @@ app.get("/api/offers",(req,res)=>{
   ]);
 });
 
+// ================= AUTO OFFER POSTBACK =================
+
+app.get("/api/postback", async (req,res)=>{
+  try{
+    let { user, reward } = req.query;
+
+    if(!user || !reward){
+      return res.send("Missing data");
+    }
+
+    let u = await User.findOne({userId:user});
+    if(!u){
+      return res.send("User not found");
+    }
+
+    let amount = parseFloat(reward);
+
+    // 💰 give reward (75% user)
+    let userEarn = amount * 0.75;
+
+    u.balance += userEarn;
+    await u.save();
+
+    console.log("✅ Offer reward added:", user, userEarn);
+
+    res.send("OK");
+  }catch(e){
+    res.send("Error");
+  }
+});
+
 // ================= BOT =================
 const bot = require("./bot");
 app.use(bot);
