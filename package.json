@@ -1,5 +1,5 @@
 {
-  "name": "earn-system",
+  "name": "earn-pro",
   "version": "1.0.0",
   "main": "app.js",
   "scripts": {
@@ -8,8 +8,7 @@
   "dependencies": {
     "express": "^4.18.2",
     "cors": "^2.8.5",
-    "node-telegram-bot-api": "^0.61.0",
     "mongoose": "^8.0.0",
-    "node-fetch": "^2.6.7"
+    "node-telegram-bot-api": "^0.61.0"
   }
 }
