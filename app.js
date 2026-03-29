@@ -16,11 +16,15 @@ mongoose.connect(process.env.MONGO_URI)
 const User = mongoose.model("User", new mongoose.Schema({
   userId: String,
   balance: { type: Number, default: 0 },
+
   referrals: { type: Number, default: 0 },
   refBy: String,
+
   lastClaim: Number,
-  dailyEarn: Number,
-  lastDay: String
+  dailyEarn: { type: Number, default: 0 },
+  lastDay: String,
+
+  banned: { type: Boolean, default: false }
 }));
 
 // ================= STATIC =================
@@ -55,12 +59,16 @@ app.get("/user/:id", async (req,res)=>{
   res.json(user);
 });
 
-// ================= REWARD =================
+// ================= REWARD (ANTI-CHEAT) =================
 app.post("/reward", async (req,res)=>{
   const { id } = req.body;
 
   let user = await User.findOne({userId:id});
   if(!user) user = await User.create({userId:id});
+
+  if(user.banned){
+    return res.json({error:"Blocked"});
+  }
 
   const now = Date.now();
   const today = new Date().toDateString();
@@ -70,15 +78,16 @@ app.post("/reward", async (req,res)=>{
     user.lastDay = today;
   }
 
-  if(now - user.lastClaim < 15000){
-    return res.json({error:"Wait 15s"});
+  if(user.lastClaim && (now - user.lastClaim < 15000)){
+    return res.json({error:"Wait 15 sec"});
   }
 
   if(user.dailyEarn >= 0.05){
-    return res.json({error:"Daily limit"});
+    return res.json({error:"Daily limit reached"});
   }
 
-  const reward = 0.002;
+  // 🔥 random reward
+  let reward = (Math.random() * 0.002 + 0.001);
 
   user.balance += reward;
   user.dailyEarn += reward;
@@ -86,7 +95,7 @@ app.post("/reward", async (req,res)=>{
 
   await user.save();
 
-  res.json({success:true});
+  res.json({success:true, reward});
 });
 
 // ================= WITHDRAW =================
@@ -126,4 +135,4 @@ const bot = require("./bot");
 app.use(bot);
 
 // ================= START =================
-app.listen(3000,()=>console.log("Server Live"));
+app.listen(3000,()=>console.log("Server Live 🚀"));
