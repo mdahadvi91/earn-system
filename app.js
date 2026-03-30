@@ -1,171 +1,193 @@
 /* ===================================================== */
-/* 🔥 BASIC SETUP */
+/* 🔹 USER ID */
 /* ===================================================== */
 
-const express = require("express");
-const cors = require("cors");
-const mongoose = require("mongoose");
+let userId = localStorage.getItem("userId");
 
-const app = express();
-app.use(cors());
-app.use(express.json());
-
+if (!userId) {
+    userId = "user_" + Math.random().toString(36).substr(2, 9);
+    localStorage.setItem("userId", userId);
+}
 
 /* ===================================================== */
-/* 🟢 ROOT CHECK */
+/* 🔗 API */
 /* ===================================================== */
 
-app.get("/", (req, res) => {
-  res.send("API Running ✅");
-});
-
+const API = "https://earn-system.onrender.com/api";
 
 /* ===================================================== */
-/* 🟢 DATABASE */
+/* 🎨 BACKGROUND */
 /* ===================================================== */
 
-mongoose.connect(process.env.MONGO_URI)
-.then(()=>console.log("✅ DB Connected"))
-.catch(err=>console.log(err));
+const backgrounds = [
+    "assets/bg1.jpg",
+    "assets/bg2.jpg",
+    "assets/bg3.jpg"
+];
 
+let bgIndex = 0;
+
+function changeBackground() {
+    let bg = document.getElementById("bg");
+    if (!bg) return;
+
+    bg.style.backgroundImage = `url(${backgrounds[bgIndex]})`;
+    bgIndex = (bgIndex + 1) % backgrounds.length;
+}
 
 /* ===================================================== */
-/* 👤 USER MODEL */
+/* 📊 LOAD USER */
 /* ===================================================== */
 
-const User = mongoose.model("User", new mongoose.Schema({
-  userId: String,
-  balance: { type: Number, default: 0 },
-  totalAds: { type: Number, default: 0 }
-}));
+async function loadUser(){
+    try {
+        let res = await fetch(`${API}/user/${userId}`);
+        let data = await res.json();
 
+        updateBalance(data.balance);
+        adsWatched = data.totalAds || 0;
 
-/* ===================================================== */
-/* 📊 GET USER */
-/* ===================================================== */
-
-app.get("/api/user/:id", async (req,res)=>{
-
-  let user = await User.findOne({userId:req.params.id});
-
-  if(!user){
-    user = await User.create({userId:req.params.id});
-  }
-
-  res.json(user);
-});
-
+        updateProgress();
+    } catch {
+        alert("Server error ❌");
+    }
+}
 
 /* ===================================================== */
 /* 📺 WATCH AD */
 /* ===================================================== */
 
-app.post("/api/watch", async (req,res)=>{
+let lastClick = 0;
+let adsWatched = 0;
+let taskStep = 5;
+let reward = 2.5;
 
-  let { id } = req.body;
+async function watchAd(){
 
-  let user = await User.findOne({userId:id});
-  if(!user) user = await User.create({userId:id});
+    let now = Date.now();
 
-  user.totalAds += 1;
+    if(now - lastClick < 5000){
+        alert("Slow down!");
+        return;
+    }
 
-  await user.save();
+    lastClick = now;
 
-  res.json({success:true});
+    window.open("https://www.profitablecpmratenetwork.com/kxq650wd?key=11d1ec5f3d88b1d9689e0547e8b15dd1");
+
+    await fetch(`${API}/watch`,{
+        method:"POST",
+        headers:{ "Content-Type":"application/json" },
+        body: JSON.stringify({ id:userId })
+    });
+
+    adsWatched++;
+    updateProgress();
+}
+
+/* ===================================================== */
+/* 🎯 PROGRESS */
+/* ===================================================== */
+
+function updateProgress(){
+    document.getElementById("progress").innerText =
+        adsWatched + " / " + taskStep;
+
+    if(adsWatched >= taskStep){
+        document.getElementById("claimBtn").style.display = "block";
+    }
+}
+
+/* ===================================================== */
+/* 💰 CLAIM */
+/* ===================================================== */
+
+async function claimReward(){
+
+    let res = await fetch(`${API}/claim`,{
+        method:"POST",
+        headers:{ "Content-Type":"application/json" },
+        body: JSON.stringify({
+            id:userId,
+            amount:reward
+        })
+    });
+
+    let data = await res.json();
+
+    if(data.success){
+        adsWatched = 0;
+        taskStep += 5;
+        reward += 2.5;
+
+        updateBalance(data.balance);
+        updateProgress();
+
+        document.getElementById("claimBtn").style.display = "none";
+
+        alert("Added " + reward + " BDT");
+    }
+}
+
+/* ===================================================== */
+/* 💰 BALANCE */
+/* ===================================================== */
+
+function updateBalance(balance){
+
+    document.getElementById("balance").innerText =
+        balance.toFixed(2) + " BDT";
+
+    document.getElementById("balanceAED").innerText =
+        (balance * 0.033).toFixed(2) + " AED";
+}
+
+/* ===================================================== */
+/* 📂 MENU */
+/* ===================================================== */
+
+function toggleMenu(){
+    let s = document.getElementById("sidebar");
+    s.style.left = (s.style.left === "0px") ? "-200px" : "0px";
+}
+
+/* ===================================================== */
+/* 🎁 BONUS */
+/* ===================================================== */
+
+function dailyBonus(){
+    let today = new Date().toDateString();
+    let last = localStorage.getItem("bonus");
+
+    if(last === today){
+        alert("Already claimed");
+        return;
+    }
+
+    localStorage.setItem("bonus", today);
+    alert("Bonus Added 🎁");
+}
+
+/* ===================================================== */
+/* 👥 FAKE USERS */
+/* ===================================================== */
+
+setInterval(()=>{
+    let num = Math.floor(Math.random()*50)+100;
+    document.getElementById("liveUsers").innerText =
+        "Active Users: " + num;
+},3000);
+
+/* ===================================================== */
+/* 🚀 INIT */
+/* ===================================================== */
+
+window.addEventListener("load", ()=>{
+    document.getElementById("loader").style.display = "none";
 });
 
-
-/* ===================================================== */
-/* 💰 CLAIM REWARD */
-/* ===================================================== */
-
-app.post("/api/claim", async (req,res)=>{
-
-  let { id, amount } = req.body;
-
-  let user = await User.findOne({userId:id});
-  if(!user) return res.json({success:false});
-
-  user.balance += amount;
-  user.totalAds = 0;
-
-  await user.save();
-
-  res.json({
-    success:true,
-    balance:user.balance
-  });
-});
-
-
-/* ===================================================== */
-/* 🎯 OFFER POSTBACK */
-/* 👉 75% USER / 25% ADMIN */
-/* ===================================================== */
-
-app.get("/api/postback", async (req,res)=>{
-
-  let { subid, payout } = req.query;
-
-  let user = await User.findOne({userId:subid});
-  if(!user) return res.send("no user");
-
-  let total = parseFloat(payout || 0);
-
-  let userShare = total * 0.75;
-
-  user.balance += userShare;
-
-  await user.save();
-
-  res.send("ok");
-});
-
-
-/* ===================================================== */
-/* 💸 WITHDRAW */
-/* ===================================================== */
-
-let withdraws = [];
-
-app.post("/api/withdraw", async (req,res)=>{
-
-  let { id, amount, method, number } = req.body;
-
-  let user = await User.findOne({userId:id});
-
-  if(!user || user.balance < amount){
-    return res.json({success:false, msg:"Low balance"});
-  }
-
-  withdraws.push({
-    id,
-    amount,
-    method,
-    number,
-    status:"pending",
-    time:new Date()
-  });
-
-  res.json({success:true});
-});
-
-
-/* ===================================================== */
-/* 📜 WITHDRAW HISTORY */
-/* ===================================================== */
-
-app.get("/api/withdraw/history",(req,res)=>{
-  res.json(withdraws);
-});
-
-
-/* ===================================================== */
-/* 🚀 START SERVER */
-/* ===================================================== */
-
-const PORT = process.env.PORT || 3000;
-
-app.listen(PORT,()=>{
-  console.log("🚀 Server Running");
+document.addEventListener("DOMContentLoaded", ()=>{
+    loadUser();
+    changeBackground();
+    setInterval(changeBackground,5000);
 });
