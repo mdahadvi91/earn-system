@@ -2,9 +2,7 @@
 <html>
 <head>
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-
 <script src="https://telegram.org/js/telegram-web-app.js"></script>
-
 <title>Earn Pro</title>
 
 <style>
@@ -14,281 +12,208 @@ body{
   background:linear-gradient(135deg,#020617,#0f172a);
   color:#fff;
 }
-
-/* TOP */
 .top{
   margin:10px;
   padding:20px;
   border-radius:20px;
   background:rgba(255,255,255,0.05);
-  backdrop-filter:blur(10px);
-  border:1px solid rgba(255,255,255,0.1);
 }
-
-/* CARD */
 .card{
   margin:10px;
   padding:15px;
   border-radius:20px;
   background:rgba(255,255,255,0.05);
 }
-
-/* BUTTON */
 .btn{
   padding:18px;
   border-radius:16px;
   background:linear-gradient(45deg,#9333ea,#4f46e5);
   text-align:center;
-  margin-top:12px;
-  font-size:18px;
-  font-weight:bold;
+  margin-top:10px;
 }
-
-/* NAV */
 .nav{
   position:fixed;
   bottom:0;
   width:100%;
-  background:#020617;
   display:flex;
   justify-content:space-around;
+  background:#020617;
   padding:12px;
 }
-
-.nav div{
-  font-size:24px;
-}
-
-/* PAGE */
-.page{
-  display:none;
-  padding:15px;
-  margin-bottom:80px;
-}
-
-/* INPUT */
-input, select{
-  width:100%;
-  padding:12px;
-  margin-top:10px;
-  border-radius:12px;
-  border:none;
-}
-
-/* POPUP */
+.nav div{font-size:22px;}
+.page{display:none;padding:15px;margin-bottom:80px;}
+input,select{width:100%;padding:10px;margin-top:10px;border-radius:10px;border:none;}
 #popup{
-  position:fixed;
-  top:20px;
-  left:50%;
-  transform:translateX(-50%);
-  background:#16a34a;
-  padding:15px 25px;
-  border-radius:12px;
-  display:none;
-  z-index:999;
-  font-weight:bold;
+position:fixed;top:20px;left:50%;transform:translateX(-50%);
+background:#16a34a;padding:10px 20px;border-radius:10px;display:none;
 }
 </style>
 </head>
 
 <body>
 
-<!-- Adsterra -->
 <script src="https://pl29010405.profitablecpmratenetwork.com/03/60/2c/03602c436b7c471195a5771cbb6aed7a.js"></script>
 
-<div id="popup">+0.00</div>
+<div id="popup"></div>
 
 <div class="top">
 User: <span id="uid"></span><br>
-Balance: <span id="bal">0</span> USDT
+Balance: <span id="bal">0</span>
 </div>
 
 <div class="card">
-🎥 Ads Watched: <span id="adsWatched">0</span>
+🎥 Ads: <span id="ads">0</span>
 </div>
 
-<div class="card">
-💰 Progress
-<div style="background:#000;border-radius:10px;margin-top:10px;">
-<div id="bar" style="height:10px;width:0%;background:#22c55e;border-radius:10px;"></div>
-</div>
-</div>
-
-<!-- PAGES -->
 <div id="task" class="page" style="display:block;">
-<h3>🎥 Task</h3>
+<h3>🎯 Tasks</h3>
 <div class="btn" onclick="watchAd()">Watch Ad</div>
-<div id="status"></div>
-</div>
-
-<div id="invite" class="page">
-<h3>👥 Invite</h3>
-<div class="card" id="refLink"></div>
+<div id="tasks"></div>
 </div>
 
 <div id="withdraw" class="page">
 <h3>💸 Withdraw</h3>
+
 <select id="method">
-<option value="bkash">Bkash</option>
-<option value="nagad">Nagad</option>
-<option value="binance">Binance</option>
+<option>bkash</option>
+<option>nagad</option>
+<option>binance</option>
 </select>
+
 <input id="account" placeholder="Account">
 <input id="amount" placeholder="Amount">
+
 <div class="btn" onclick="withdraw()">Submit</div>
 </div>
 
-<div id="leaderboard" class="page">
-<h3>🏆 Leaderboard</h3>
-<div id="leaderboardList"></div>
-</div>
-
-<div id="offerwall" class="page">
-<h3>🔥 Offerwall</h3>
-<div id="offers"></div>
-</div>
-
-<!-- NAV -->
 <div class="nav">
 <div onclick="showPage('task')">🏠</div>
-<div onclick="showPage('invite')">👥</div>
 <div onclick="showPage('withdraw')">💰</div>
-<div onclick="showPage('leaderboard')">🏆</div>
-<div onclick="showPage('offerwall')">🔥</div>
 </div>
 
 <script>
 
+// ================= USER =================
 let tg = window.Telegram.WebApp;
 let user = tg.initDataUnsafe.user?.id || "test";
+uid.innerText = user;
 
-document.getElementById("uid").innerText = user;
+// ================= DEVICE =================
+let device = localStorage.getItem("dev") || Math.random();
+localStorage.setItem("dev",device);
 
-let device = localStorage.getItem("device") || Math.random();
-localStorage.setItem("device", device);
+// ================= AUTO CURRENCY =================
+let currency = "BDT";
+let symbol = "৳";
+let rate = 120;
 
-let adCount = parseInt(localStorage.getItem("ads")) || 0;
-
-function showPopup(t){
-  let p = document.getElementById("popup");
-  p.innerText = t;
-  p.style.display="block";
-  setTimeout(()=>p.style.display="none",2000);
+// UAE detect
+if(navigator.language.includes("en")){
+  currency = "AED";
+  symbol = "AED ";
+  rate = 3.67;
 }
 
-function updateAnalytics(){
-  document.getElementById("adsWatched").innerText = adCount;
-}
-updateAnalytics();
-
-function showPage(p){
-  document.querySelectorAll(".page").forEach(x=>x.style.display="none");
-  document.getElementById(p).style.display="block";
-
-  if(p=="leaderboard") loadLeaderboard();
-  if(p=="offerwall") loadOffers();
-}
-
-let currentBal = 0;
-
-function animateBalance(n){
-  let start=currentBal;
-  let end=n;
-  let t=0;
-  let i=setInterval(()=>{
-    t+=0.1;
-    let v=start+(end-start)*t;
-    document.getElementById("bal").innerText=v.toFixed(4);
-    if(t>=1){clearInterval(i);currentBal=end;}
-  },50);
-}
-
+// ================= BALANCE =================
 function loadUser(){
-  fetch("/api/user/"+user)
-  .then(r=>r.json())
-  .then(d=>{
-    animateBalance(d.balance);
-    let percent = Math.min((d.dailyEarn/0.05)*100,100);
-    document.getElementById("bar").style.width = percent+"%";
-  });
-}
+ fetch("/api/user/"+user)
+ .then(r=>r.json())
+ .then(d=>{
+   let money = d.balance * rate;
+   bal.innerText = money.toFixed(2)+" "+symbol;
 
+   ads.innerText = d.totalAds;
+   loadTasks(d.totalAds);
+ });
+}
 setInterval(loadUser,5000);
 loadUser();
 
-let last=0;
+// ================= POPUP =================
+function popup(t){
+ popupDiv.innerText=t;
+ popupDiv.style.display="block";
+ setTimeout(()=>popupDiv.style.display="none",2000);
+}
 
+// ================= WATCH =================
 function watchAd(){
+ window.open("https://www.profitablecpmratenetwork.com/kxq650wd?key=11d1ec5f3d88b1d9689e0547e8b15dd1");
 
-  if(Date.now()-last<15000){
-    alert("Wait...");
-    return;
-  }
-
-  last=Date.now();
-
-  window.open("https://www.profitablecpmratenetwork.com/kxq650wd?key=11d1ec5f3d88b1d9689e0547e8b15dd1");
-
-  setTimeout(()=>{
-    fetch("/api/reward",{
-      method:"POST",
-      headers:{"Content-Type":"application/json"},
-      body:JSON.stringify({id:user,device})
-    })
-    .then(r=>r.json())
-    .then(d=>{
-      showPopup(d.msg);
-      adCount++;
-      localStorage.setItem("ads",adCount);
-      updateAnalytics();
-      loadUser();
-
-      if(adCount%5===0){
-        showPopup("🔥 BONUS!");
-      }
-    });
-  },10000);
+ setTimeout(()=>{
+   fetch("/api/watch",{
+     method:"POST",
+     headers:{"Content-Type":"application/json"},
+     body:JSON.stringify({id:user,device})
+   })
+   .then(r=>r.json())
+   .then(()=>{
+     popup("Ad counted ✅");
+     loadUser();
+   });
+ },8000);
 }
 
+// ================= TASK =================
+let TASKS = [
+ {ads:5,reward:0.01},
+ {ads:10,reward:0.02},
+ {ads:20,reward:0.05}
+];
+
+function loadTasks(total){
+ let html="";
+ TASKS.forEach((t,i)=>{
+   let done = total>=t.ads;
+
+   html+=`
+   <div class="card">
+   ${t.ads} Ads → ${(t.reward*rate).toFixed(2)} ${symbol}<br>
+   ${
+     done
+     ? `<div class="btn" onclick="claim(${i})">Claim</div>`
+     : `<div class="btn" style="background:gray">Locked</div>`
+   }
+   </div>`;
+ });
+ tasks.innerHTML=html;
+}
+
+// ================= CLAIM =================
+function claim(i){
+ fetch("/api/taskReward",{
+   method:"POST",
+   headers:{"Content-Type":"application/json"},
+   body:JSON.stringify({id:user,index:i})
+ })
+ .then(r=>r.json())
+ .then(d=>{
+   popup(d.msg);
+   loadUser();
+ });
+}
+
+// ================= WITHDRAW =================
 function withdraw(){
-  fetch("/api/withdraw",{
-    method:"POST",
-    headers:{"Content-Type":"application/json"},
-    body:JSON.stringify({
-      id:user,
-      amount:amount.value,
-      account:account.value,
-      method:method.value
-    })
-  })
-  .then(r=>r.json())
-  .then(d=>alert(d.msg));
+ fetch("/api/withdraw",{
+   method:"POST",
+   headers:{"Content-Type":"application/json"},
+   body:JSON.stringify({
+     id:user,
+     amount:amount.value,
+     method:method.value,
+     account:account.value
+   })
+ })
+ .then(r=>r.json())
+ .then(d=>popup(d.msg));
 }
 
-function loadLeaderboard(){
-  fetch("/api/leaderboard")
-  .then(r=>r.json())
-  .then(d=>{
-    let h="";
-    d.forEach(u=>h+=`<div class="card">${u.userId} - ${u.balance}</div>`);
-    leaderboardList.innerHTML=h;
-  });
+// ================= NAV =================
+function showPage(p){
+ document.querySelectorAll(".page").forEach(x=>x.style.display="none");
+ document.getElementById(p).style.display="block";
 }
-
-function loadOffers(){
-  fetch("/api/offers")
-  .then(r=>r.json())
-  .then(d=>{
-    let h="";
-    d.forEach(o=>{
-      h+=`<div class="card">${o.title}<br>${o.reward}
-      <div class="btn" onclick="window.open('${o.link}')">Start</div></div>`;
-    });
-    offers.innerHTML=h;
-  });
-}
-
-refLink.innerText = location.origin + "?ref=" + user;
 
 </script>
 
