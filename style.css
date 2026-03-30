@@ -1,0 +1,183 @@
+/* ===================================================== */
+/* 🔹 RESET + BASIC STYLE */
+/* 👉 Sob browser e same look anar jonno */
+/* ===================================================== */
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+    font-family: Arial, sans-serif;
+}
+
+
+/* ===================================================== */
+/* 🔹 BODY STYLE */
+/* 👉 Main background transparent rakha hocche */
+/* ===================================================== */
+body {
+    color: #fff;
+    overflow-x: hidden;
+}
+
+
+/* ===================================================== */
+/* 🔥 LIVE BACKGROUND */
+/* 👉 Image JS diye change hobe */
+/* 👉 Blur + dark overlay for premium look */
+/* ===================================================== */
+.background {
+    position: fixed;
+    width: 100%;
+    height: 100%;
+    z-index: -1;
+
+    background-size: cover;
+    background-position: center;
+
+    filter: brightness(0.5) blur(4px);
+
+    transition: background-image 1s ease-in-out;
+}
+
+
+/* ===================================================== */
+/* 🔝 HEADER STYLE */
+/* ===================================================== */
+header {
+    display: flex;
+    align-items: center;
+    padding: 15px;
+    background: rgba(0,0,0,0.4);
+    backdrop-filter: blur(10px);
+}
+
+header h2 {
+    margin-left: 15px;
+}
+
+.menu-btn {
+    font-size: 22px;
+    cursor: pointer;
+}
+
+
+/* ===================================================== */
+/* 💰 BALANCE BOX */
+/* ===================================================== */
+.balance-box {
+    margin: 20px;
+    padding: 20px;
+    border-radius: 15px;
+
+    background: rgba(255,255,255,0.1);
+    backdrop-filter: blur(10px);
+
+    text-align: center;
+}
+
+.balance-box p {
+    font-size: 20px;
+    margin-top: 10px;
+}
+
+
+/* ===================================================== */
+/* 📊 TOTAL EARN */
+/* ===================================================== */
+.total-box {
+    margin: 0 20px 20px;
+    padding: 10px;
+
+    text-align: center;
+
+    background: rgba(0,0,0,0.4);
+    border-radius: 10px;
+}
+
+
+/* ===================================================== */
+/* 🧊 CARD DESIGN (MAIN FEATURES) */
+/* 👉 Ads, Offer, Invite sob card same design */
+/* ===================================================== */
+.card {
+    margin: 15px 20px;
+    padding: 20px;
+
+    border-radius: 15px;
+
+    background: rgba(255,255,255,0.1);
+    backdrop-filter: blur(10px);
+
+    text-align: center;
+}
+
+
+/* ===================================================== */
+/* 🔘 BUTTON STYLE */
+/* 👉 Glow effect + smooth hover */
+/* ===================================================== */
+button {
+    margin-top: 10px;
+    padding: 10px 20px;
+
+    border: none;
+    border-radius: 10px;
+
+    background: linear-gradient(45deg, #00c6ff, #0072ff);
+    color: white;
+
+    cursor: pointer;
+
+    transition: 0.3s;
+}
+
+button:hover {
+    transform: scale(1.05);
+    box-shadow: 0 0 10px #00c6ff;
+}
+
+
+/* ===================================================== */
+/* 📂 SIDEBAR MENU */
+/* ===================================================== */
+.sidebar {
+    position: fixed;
+    top: 0;
+    left: -200px;
+
+    width: 200px;
+    height: 100%;
+
+    background: rgba(0,0,0,0.8);
+
+    padding-top: 60px;
+
+    transition: 0.3s;
+}
+
+.sidebar a {
+    display: block;
+    padding: 15px;
+
+    color: white;
+    text-decoration: none;
+}
+
+.sidebar a:hover {
+    background: rgba(255,255,255,0.2);
+}
+
+
+/* ===================================================== */
+/* 📱 MOBILE RESPONSIVE */
+/* 👉 Small screen e perfect look */
+/* ===================================================== */
+@media (max-width: 600px) {
+    .balance-box p {
+        font-size: 18px;
+    }
+
+    button {
+        width: 100%;
+    }
+}
