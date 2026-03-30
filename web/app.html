@@ -11,28 +11,40 @@
 body{
   margin:0;
   font-family:sans-serif;
-  background:#0f172a;
+  background:linear-gradient(135deg,#020617,#0f172a);
   color:#fff;
 }
+
+/* TOP */
 .top{
   margin:10px;
   padding:20px;
   border-radius:20px;
-  background:linear-gradient(45deg,#1e293b,#7c3aed);
+  background:rgba(255,255,255,0.05);
+  backdrop-filter:blur(10px);
+  border:1px solid rgba(255,255,255,0.1);
 }
+
+/* CARD */
 .card{
   margin:10px;
   padding:15px;
-  background:#1e293b;
   border-radius:20px;
+  background:rgba(255,255,255,0.05);
 }
+
+/* BUTTON */
 .btn{
-  padding:15px;
-  border-radius:12px;
+  padding:18px;
+  border-radius:16px;
   background:linear-gradient(45deg,#9333ea,#4f46e5);
   text-align:center;
-  margin-top:10px;
+  margin-top:12px;
+  font-size:18px;
+  font-weight:bold;
 }
+
+/* NAV */
 .nav{
   position:fixed;
   bottom:0;
@@ -40,24 +52,41 @@ body{
   background:#020617;
   display:flex;
   justify-content:space-around;
-  padding:10px;
+  padding:12px;
 }
+
+.nav div{
+  font-size:24px;
+}
+
+/* PAGE */
 .page{
   display:none;
   padding:15px;
-  margin-bottom:70px;
+  margin-bottom:80px;
 }
+
+/* INPUT */
 input, select{
   width:100%;
-  padding:10px;
+  padding:12px;
   margin-top:10px;
-  border-radius:10px;
+  border-radius:12px;
   border:none;
 }
-.loading{
-  text-align:center;
-  margin-top:10px;
-  color:#facc15;
+
+/* POPUP */
+#popup{
+  position:fixed;
+  top:20px;
+  left:50%;
+  transform:translateX(-50%);
+  background:#16a34a;
+  padding:15px 25px;
+  border-radius:12px;
+  display:none;
+  z-index:999;
+  font-weight:bold;
 }
 </style>
 </head>
@@ -67,216 +96,199 @@ input, select{
 <!-- Adsterra -->
 <script src="https://pl29010405.profitablecpmratenetwork.com/03/60/2c/03602c436b7c471195a5771cbb6aed7a.js"></script>
 
+<div id="popup">+0.00</div>
+
 <div class="top">
-User ID: <span id="uid"></span><br>
+User: <span id="uid"></span><br>
 Balance: <span id="bal">0</span> USDT
 </div>
 
-<!-- 📊 Analytics -->
 <div class="card">
 🎥 Ads Watched: <span id="adsWatched">0</span>
 </div>
 
-<!-- ================= PAGES ================= -->
+<div class="card">
+💰 Progress
+<div style="background:#000;border-radius:10px;margin-top:10px;">
+<div id="bar" style="height:10px;width:0%;background:#22c55e;border-radius:10px;"></div>
+</div>
+</div>
 
+<!-- PAGES -->
 <div id="task" class="page" style="display:block;">
-  <h3>🎥 Task</h3>
-  <div class="btn" onclick="watchAd()">Watch Ad</div>
-  <div id="status" class="loading"></div>
+<h3>🎥 Task</h3>
+<div class="btn" onclick="watchAd()">Watch Ad</div>
+<div id="status"></div>
 </div>
 
 <div id="invite" class="page">
-  <h3>👥 Invite</h3>
-  <p>Your referral link:</p>
-  <div class="card" id="refLink"></div>
+<h3>👥 Invite</h3>
+<div class="card" id="refLink"></div>
 </div>
 
 <div id="withdraw" class="page">
-  <h3>💸 Withdraw</h3>
-
-  <select id="method">
-    <option value="bkash">Bkash</option>
-    <option value="nagad">Nagad</option>
-    <option value="binance">Binance</option>
-  </select>
-
-  <input id="account" placeholder="Number / Wallet">
-  <input id="amount" placeholder="Amount">
-
-  <div class="btn" onclick="withdraw()">Submit</div>
+<h3>💸 Withdraw</h3>
+<select id="method">
+<option value="bkash">Bkash</option>
+<option value="nagad">Nagad</option>
+<option value="binance">Binance</option>
+</select>
+<input id="account" placeholder="Account">
+<input id="amount" placeholder="Amount">
+<div class="btn" onclick="withdraw()">Submit</div>
 </div>
 
 <div id="leaderboard" class="page">
-  <h3>🏆 Leaderboard</h3>
-  <div id="leaderboardList"></div>
+<h3>🏆 Leaderboard</h3>
+<div id="leaderboardList"></div>
 </div>
 
 <div id="offerwall" class="page">
-  <h3>🔥 Offerwall</h3>
-  <div id="offers"></div>
+<h3>🔥 Offerwall</h3>
+<div id="offers"></div>
 </div>
 
-<!-- ================= NAV ================= -->
+<!-- NAV -->
 <div class="nav">
-  <div onclick="showPage('task')">🏠</div>
-  <div onclick="showPage('invite')">👥</div>
-  <div onclick="showPage('withdraw')">💰</div>
-  <div onclick="showPage('leaderboard')">🏆</div>
-  <div onclick="showPage('offerwall')">🔥</div>
+<div onclick="showPage('task')">🏠</div>
+<div onclick="showPage('invite')">👥</div>
+<div onclick="showPage('withdraw')">💰</div>
+<div onclick="showPage('leaderboard')">🏆</div>
+<div onclick="showPage('offerwall')">🔥</div>
 </div>
 
-<!-- ================= SCRIPT ================= -->
 <script>
 
 let tg = window.Telegram.WebApp;
-let user = tg.initDataUnsafe.user?.id || "test_user";
+let user = tg.initDataUnsafe.user?.id || "test";
 
 document.getElementById("uid").innerText = user;
 
-// 🔐 DEVICE ID
-let device = localStorage.getItem("device_id");
-if(!device){
-  device = Math.random().toString(36).substring(2);
-  localStorage.setItem("device_id", device);
-}
+let device = localStorage.getItem("device") || Math.random();
+localStorage.setItem("device", device);
 
-// 📊 LOAD ANALYTICS
-let adCount = parseInt(localStorage.getItem("ad_count")) || 0;
+let adCount = parseInt(localStorage.getItem("ads")) || 0;
+
+function showPopup(t){
+  let p = document.getElementById("popup");
+  p.innerText = t;
+  p.style.display="block";
+  setTimeout(()=>p.style.display="none",2000);
+}
 
 function updateAnalytics(){
   document.getElementById("adsWatched").innerText = adCount;
 }
 updateAnalytics();
 
-// page switch
-function showPage(page){
-  document.querySelectorAll(".page").forEach(p=>p.style.display="none");
-  document.getElementById(page).style.display="block";
+function showPage(p){
+  document.querySelectorAll(".page").forEach(x=>x.style.display="none");
+  document.getElementById(p).style.display="block";
 
-  if(page=="leaderboard") loadLeaderboard();
-  if(page=="offerwall") loadOffers();
+  if(p=="leaderboard") loadLeaderboard();
+  if(p=="offerwall") loadOffers();
 }
 
-// 💰 LOAD USER
+let currentBal = 0;
+
+function animateBalance(n){
+  let start=currentBal;
+  let end=n;
+  let t=0;
+  let i=setInterval(()=>{
+    t+=0.1;
+    let v=start+(end-start)*t;
+    document.getElementById("bal").innerText=v.toFixed(4);
+    if(t>=1){clearInterval(i);currentBal=end;}
+  },50);
+}
+
 function loadUser(){
   fetch("/api/user/"+user)
   .then(r=>r.json())
   .then(d=>{
-    document.getElementById("bal").innerText = d.balance.toFixed(4);
+    animateBalance(d.balance);
+    let percent = Math.min((d.dailyEarn/0.05)*100,100);
+    document.getElementById("bar").style.width = percent+"%";
   });
 }
 
-setInterval(loadUser, 5000);
+setInterval(loadUser,5000);
 loadUser();
 
-// 🎥 WATCH AD SYSTEM
-let lastAdTime = 0;
+let last=0;
 
 function watchAd(){
 
-  let now = Date.now();
-
-  if(now - lastAdTime < 15000){
-    alert("⏳ Wait 15 sec");
+  if(Date.now()-last<15000){
+    alert("Wait...");
     return;
   }
 
-  lastAdTime = now;
+  last=Date.now();
 
-  document.getElementById("status").innerText = "🎥 Opening ad...";
+  window.open("https://www.profitablecpmratenetwork.com/kxq650wd?key=11d1ec5f3d88b1d9689e0547e8b15dd1");
 
-  // 🔥 OPEN AD
-  window.open("https://www.profitablecpmratenetwork.com/kxq650wd?key=11d1ec5f3d88b1d9689e0547e8b15dd1","_blank");
-
-  // ⏳ WAIT + REWARD
   setTimeout(()=>{
-
-    document.getElementById("status").innerText = "💰 Getting reward...";
-
     fetch("/api/reward",{
       method:"POST",
       headers:{"Content-Type":"application/json"},
-      body:JSON.stringify({
-        id:user,
-        device:device
-      })
+      body:JSON.stringify({id:user,device})
     })
     .then(r=>r.json())
     .then(d=>{
-      alert(d.msg);
-
+      showPopup(d.msg);
       adCount++;
-      localStorage.setItem("ad_count", adCount);
+      localStorage.setItem("ads",adCount);
       updateAnalytics();
-
       loadUser();
 
-      // 🔥 BONUS
-      if(adCount % 5 === 0){
-        alert("🔥 BONUS +0.005 USDT");
+      if(adCount%5===0){
+        showPopup("🔥 BONUS!");
       }
-
-      document.getElementById("status").innerText = "";
     });
-
-  }, 10000);
+  },10000);
 }
 
-// 💸 WITHDRAW
 function withdraw(){
-  let amount = document.getElementById("amount").value;
-  let account = document.getElementById("account").value;
-  let method = document.getElementById("method").value;
-
   fetch("/api/withdraw",{
     method:"POST",
     headers:{"Content-Type":"application/json"},
     body:JSON.stringify({
       id:user,
-      amount,
-      account,
-      method
+      amount:amount.value,
+      account:account.value,
+      method:method.value
     })
   })
   .then(r=>r.json())
-  .then(d=>{
-    alert(d.msg);
-  });
+  .then(d=>alert(d.msg));
 }
 
-// 🏆 LEADERBOARD
 function loadLeaderboard(){
   fetch("/api/leaderboard")
   .then(r=>r.json())
-  .then(data=>{
-    let html="";
-    data.forEach(u=>{
-      html+=`<div class="card">${u.userId} - ${u.balance.toFixed(3)}</div>`;
-    });
-    document.getElementById("leaderboardList").innerHTML = html;
+  .then(d=>{
+    let h="";
+    d.forEach(u=>h+=`<div class="card">${u.userId} - ${u.balance}</div>`);
+    leaderboardList.innerHTML=h;
   });
 }
 
-// 🔥 OFFERS
 function loadOffers(){
   fetch("/api/offers")
   .then(r=>r.json())
-  .then(data=>{
-    let html="";
-    data.forEach(o=>{
-      html+=`<div class="card">
-        ${o.title}<br>
-        💰 ${o.reward}
-        <div class="btn" onclick="window.open('${o.link}')">Start</div>
-      </div>`;
+  .then(d=>{
+    let h="";
+    d.forEach(o=>{
+      h+=`<div class="card">${o.title}<br>${o.reward}
+      <div class="btn" onclick="window.open('${o.link}')">Start</div></div>`;
     });
-    document.getElementById("offers").innerHTML = html;
+    offers.innerHTML=h;
   });
 }
 
-// 👥 REF LINK
-document.getElementById("refLink").innerText =
-  window.location.origin + "?ref=" + user;
+refLink.innerText = location.origin + "?ref=" + user;
 
 </script>
 
