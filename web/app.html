@@ -30,6 +30,7 @@ body{
   background:linear-gradient(45deg,#9333ea,#4f46e5);
   text-align:center;
   margin-top:10px;
+  font-size:18px;
 }
 .nav{
   position:fixed;
@@ -38,20 +39,39 @@ body{
   display:flex;
   justify-content:space-around;
   background:#020617;
-  padding:12px;
+  padding:14px;
 }
-.nav div{font-size:22px;}
-.page{display:none;padding:15px;margin-bottom:80px;}
-input,select{width:100%;padding:10px;margin-top:10px;border-radius:10px;border:none;}
+.nav div{
+  font-size:24px;
+}
+.page{
+  display:none;
+  padding:15px;
+  margin-bottom:90px;
+}
+input,select{
+  width:100%;
+  padding:12px;
+  margin-top:10px;
+  border-radius:10px;
+  border:none;
+}
 #popup{
-position:fixed;top:20px;left:50%;transform:translateX(-50%);
-background:#16a34a;padding:10px 20px;border-radius:10px;display:none;
+position:fixed;
+top:20px;
+left:50%;
+transform:translateX(-50%);
+background:#16a34a;
+padding:10px 20px;
+border-radius:10px;
+display:none;
 }
 </style>
 </head>
 
 <body>
 
+<!-- Adsterra -->
 <script src="https://pl29010405.profitablecpmratenetwork.com/03/60/2c/03602c436b7c471195a5771cbb6aed7a.js"></script>
 
 <div id="popup"></div>
@@ -62,30 +82,33 @@ Balance: <span id="bal">0</span>
 </div>
 
 <div class="card">
-🎥 Ads: <span id="ads">0</span>
+🎥 Ads Watched: <span id="ads">0</span>
 </div>
 
+<!-- TASK PAGE -->
 <div id="task" class="page" style="display:block;">
 <h3>🎯 Tasks</h3>
-<div class="btn" onclick="watchAd()">Watch Ad</div>
+<div class="btn" onclick="watchAd()">🎥 Watch Ad</div>
 <div id="tasks"></div>
 </div>
 
+<!-- WITHDRAW PAGE -->
 <div id="withdraw" class="page">
 <h3>💸 Withdraw</h3>
 
 <select id="method">
-<option>bkash</option>
-<option>nagad</option>
-<option>binance</option>
+<option value="bkash">Bkash</option>
+<option value="nagad">Nagad</option>
+<option value="binance">Binance</option>
 </select>
 
-<input id="account" placeholder="Account">
+<input id="account" placeholder="Account Number / Wallet">
 <input id="amount" placeholder="Amount">
 
 <div class="btn" onclick="withdraw()">Submit</div>
 </div>
 
+<!-- NAV -->
 <div class="nav">
 <div onclick="showPage('task')">🏠</div>
 <div onclick="showPage('withdraw')">💰</div>
@@ -93,68 +116,89 @@ Balance: <span id="bal">0</span>
 
 <script>
 
-// ================= USER =================
+// ================= BASIC =================
 let tg = window.Telegram.WebApp;
-let user = tg.initDataUnsafe.user?.id || "test";
-uid.innerText = user;
+let user = tg.initDataUnsafe.user?.id || "test_user";
+document.getElementById("uid").innerText = user;
+
+let popupDiv = document.getElementById("popup");
 
 // ================= DEVICE =================
-let device = localStorage.getItem("dev") || Math.random();
-localStorage.setItem("dev",device);
+let device = localStorage.getItem("dev");
+if(!device){
+  device = Math.random().toString(36).substring(2);
+  localStorage.setItem("dev",device);
+}
 
 // ================= AUTO CURRENCY =================
 let currency = "BDT";
 let symbol = "৳";
 let rate = 120;
 
-// UAE detect
-if(navigator.language.includes("en")){
+if(Intl.DateTimeFormat().resolvedOptions().timeZone.includes("Dubai")){
   currency = "AED";
   symbol = "AED ";
   rate = 3.67;
 }
 
-// ================= BALANCE =================
+// ================= POPUP =================
+function popup(text){
+  popupDiv.innerText = text;
+  popupDiv.style.display="block";
+  setTimeout(()=>popupDiv.style.display="none",2000);
+}
+
+// ================= LOAD USER =================
 function loadUser(){
  fetch("/api/user/"+user)
  .then(r=>r.json())
  .then(d=>{
    let money = d.balance * rate;
-   bal.innerText = money.toFixed(2)+" "+symbol;
+   document.getElementById("bal").innerText =
+     money.toFixed(2) + " " + symbol;
 
-   ads.innerText = d.totalAds;
+   document.getElementById("ads").innerText = d.totalAds;
    loadTasks(d.totalAds);
  });
 }
 setInterval(loadUser,5000);
 loadUser();
 
-// ================= POPUP =================
-function popup(t){
- popupDiv.innerText=t;
- popupDiv.style.display="block";
- setTimeout(()=>popupDiv.style.display="none",2000);
-}
+// ================= WATCH AD =================
+let lastAd = 0;
 
-// ================= WATCH =================
 function watchAd(){
+
+ let now = Date.now();
+
+ if(now - lastAd < 15000){
+   popup("⏳ Wait 15 sec");
+   return;
+ }
+
+ lastAd = now;
+
  window.open("https://www.profitablecpmratenetwork.com/kxq650wd?key=11d1ec5f3d88b1d9689e0547e8b15dd1");
 
  setTimeout(()=>{
    fetch("/api/watch",{
      method:"POST",
      headers:{"Content-Type":"application/json"},
-     body:JSON.stringify({id:user,device})
+     body:JSON.stringify({
+       id:user,
+       deviceId:device
+     })
    })
    .then(r=>r.json())
    .then(()=>{
-     popup("Ad counted ✅");
+     popup("✅ Ad counted");
      loadUser();
    });
  },8000);
+
 }
 
-// ================= TASK =================
+// ================= TASK SYSTEM =================
 let TASKS = [
  {ads:5,reward:0.01},
  {ads:10,reward:0.02},
@@ -176,15 +220,19 @@ function loadTasks(total){
    }
    </div>`;
  });
- tasks.innerHTML=html;
+ document.getElementById("tasks").innerHTML = html;
 }
 
 // ================= CLAIM =================
 function claim(i){
+
  fetch("/api/taskReward",{
    method:"POST",
    headers:{"Content-Type":"application/json"},
-   body:JSON.stringify({id:user,index:i})
+   body:JSON.stringify({
+     id:user,
+     index:i
+   })
  })
  .then(r=>r.json())
  .then(d=>{
@@ -195,18 +243,25 @@ function claim(i){
 
 // ================= WITHDRAW =================
 function withdraw(){
+
+ let amt = parseFloat(document.getElementById("amount").value);
+
+ let usdt = amt / rate;
+
  fetch("/api/withdraw",{
    method:"POST",
    headers:{"Content-Type":"application/json"},
    body:JSON.stringify({
      id:user,
-     amount:amount.value,
-     method:method.value,
-     account:account.value
+     amount:usdt,
+     method:document.getElementById("method").value,
+     account:document.getElementById("account").value
    })
  })
  .then(r=>r.json())
- .then(d=>popup(d.msg));
+ .then(d=>{
+   popup(d.msg);
+ });
 }
 
 // ================= NAV =================
