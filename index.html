@@ -1,0 +1,135 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <!-- 🔹 BASIC SETUP -->
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Earn App</title>
+
+    <!-- 🔹 MAIN CSS FILE (GLOBAL DESIGN) -->
+    <!-- 👉 Sob page e same style use hobe -->
+    <link rel="stylesheet" href="style.css">
+</head>
+
+<body>
+
+<!-- ===================================================== -->
+<!-- 🔥 LIVE BACKGROUND SECTION -->
+<!-- 👉 JS diye image change hobe (assets folder theke) -->
+<!-- ===================================================== -->
+<div class="background" id="bg"></div>
+
+
+<!-- ===================================================== -->
+<!-- 🔝 HEADER SECTION -->
+<!-- 👉 Menu button + App name -->
+<!-- ===================================================== -->
+<header>
+    <div class="menu-btn" onclick="toggleMenu()">☰</div>
+    <h2>Earn App</h2>
+</header>
+
+
+<!-- ===================================================== -->
+<!-- 💰 BALANCE DISPLAY SECTION -->
+<!-- 👉 User er main balance (BDT + AED) -->
+<!-- ===================================================== -->
+<div class="balance-box">
+    <h3>Your Balance</h3>
+
+    <!-- 👉 BDT Balance -->
+    <p id="balance">0.00 BDT</p>
+
+    <!-- 👉 AED Convert (auto JS diye hobe) -->
+    <p id="balanceAED">0.00 AED</p>
+</div>
+
+
+<!-- ===================================================== -->
+<!-- 📊 TOTAL EARNING DISPLAY -->
+<!-- 👉 Lifetime earning (trust build korar jonno important) -->
+<!-- ===================================================== -->
+<div class="total-box">
+    Total Earn: <span id="totalEarn">0</span> BDT
+</div>
+
+
+<!-- ===================================================== -->
+<!-- 📺 WATCH ADS TASK SYSTEM -->
+<!-- 👉 5 ads = 2.5 BDT, 10 ads = 5 BDT -->
+<!-- ===================================================== -->
+<div class="card">
+
+    <h3>Watch Ads & Earn</h3>
+
+    <!-- 👉 Progress show korbe -->
+    <p id="progress">0 / 5 Ads Completed</p>
+
+    <!-- 👉 Ad open button -->
+    <button onclick="watchAd()">Watch Ad</button>
+
+    <!-- 👉 Claim button (initial hidden) -->
+    <button id="claimBtn" onclick="claimReward()" style="display:none;">
+        Claim Reward
+    </button>
+
+</div>
+
+
+<!-- ===================================================== -->
+<!-- 🎯 OFFER PAGE BUTTON -->
+<!-- 👉 Monetag + CMPGrid -->
+<!-- ===================================================== -->
+<div class="card">
+    <h3>Offers</h3>
+    <button onclick="openOffers()">Open Offers</button>
+</div>
+
+
+<!-- ===================================================== -->
+<!-- 🎮 OFFERWALL BUTTON -->
+<!-- 👉 Game install + level earning -->
+<!-- ===================================================== -->
+<div class="card">
+    <h3>Offerwall</h3>
+    <button onclick="openOfferwall()">Open Games</button>
+</div>
+
+
+<!-- ===================================================== -->
+<!-- 👥 REFERRAL SYSTEM -->
+<!-- ===================================================== -->
+<div class="card">
+    <h3>Invite & Earn</h3>
+    <button onclick="goInvite()">Invite Friends</button>
+</div>
+
+
+<!-- ===================================================== -->
+<!-- 💸 WITHDRAW SYSTEM -->
+<!-- ===================================================== -->
+<div class="card">
+    <h3>Withdraw</h3>
+    <button onclick="goWithdraw()">Withdraw Now</button>
+</div>
+
+
+<!-- ===================================================== -->
+<!-- 📂 SIDEBAR MENU -->
+<!-- 👉 About + Contact -->
+<!-- ===================================================== -->
+<div id="sidebar" class="sidebar">
+    <a href="#">Home</a>
+    <a href="#">About</a>
+    <a href="#">Contact</a>
+</div>
+
+
+<!-- ===================================================== -->
+<!-- 🔻 MAIN JAVASCRIPT FILE -->
+<!-- 👉 Ads logic + balance + navigation sob ekhane -->
+<!-- ===================================================== -->
+<script src="app.js"></script>
+
+</body>
+</html>
