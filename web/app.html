@@ -3,202 +3,185 @@
 <head>
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <script src="https://telegram.org/js/telegram-web-app.js"></script>
+
 <title>Earn Pro</title>
 
 <style>
 body{
   margin:0;
   font-family:sans-serif;
-  background:linear-gradient(135deg,#020617,#0f172a);
+  background:#020617;
   color:#fff;
 }
+
 .top{
   margin:10px;
   padding:20px;
   border-radius:20px;
-  background:rgba(255,255,255,0.05);
+  background:linear-gradient(45deg,#1e293b,#7c3aed);
 }
+
 .card{
   margin:10px;
   padding:15px;
   border-radius:20px;
-  background:rgba(255,255,255,0.05);
+  background:#1e293b;
 }
+
 .btn{
   padding:18px;
-  border-radius:16px;
+  border-radius:15px;
   background:linear-gradient(45deg,#9333ea,#4f46e5);
   text-align:center;
   margin-top:10px;
   font-size:18px;
 }
+
 .nav{
   position:fixed;
   bottom:0;
   width:100%;
+  background:#020617;
   display:flex;
   justify-content:space-around;
-  background:#020617;
-  padding:14px;
+  padding:12px;
 }
+
 .nav div{
   font-size:24px;
 }
+
 .page{
   display:none;
   padding:15px;
-  margin-bottom:90px;
+  margin-bottom:80px;
 }
+
 input,select{
   width:100%;
-  padding:12px;
+  padding:10px;
   margin-top:10px;
   border-radius:10px;
   border:none;
-}
-#popup{
-position:fixed;
-top:20px;
-left:50%;
-transform:translateX(-50%);
-background:#16a34a;
-padding:10px 20px;
-border-radius:10px;
-display:none;
 }
 </style>
 </head>
 
 <body>
 
-<!-- Adsterra -->
-<script src="https://pl29010405.profitablecpmratenetwork.com/03/60/2c/03602c436b7c471195a5771cbb6aed7a.js"></script>
-
-<div id="popup"></div>
-
 <div class="top">
 User: <span id="uid"></span><br>
-Balance: <span id="bal">0</span>
+Balance: <span id="bal">0</span> USDT<br>
+Ads: <span id="ads">0</span>
 </div>
 
-<div class="card">
-🎥 Ads Watched: <span id="ads">0</span>
-</div>
-
-<!-- TASK PAGE -->
+<!-- ================= TASK ================= -->
 <div id="task" class="page" style="display:block;">
 <h3>🎯 Tasks</h3>
+
 <div class="btn" onclick="watchAd()">🎥 Watch Ad</div>
+
 <div id="tasks"></div>
 </div>
 
-<!-- WITHDRAW PAGE -->
+<!-- ================= INVITE ================= -->
+<div id="invite" class="page">
+<h3>👥 Invite</h3>
+
+<div class="card">
+Your Link:
+<br>
+<span id="refLink"></span>
+</div>
+</div>
+
+<!-- ================= WITHDRAW ================= -->
 <div id="withdraw" class="page">
 <h3>💸 Withdraw</h3>
 
 <select id="method">
-<option value="bkash">Bkash</option>
-<option value="nagad">Nagad</option>
-<option value="binance">Binance</option>
+<option>bkash</option>
+<option>nagad</option>
+<option>binance</option>
 </select>
 
-<input id="account" placeholder="Account Number / Wallet">
+<input id="account" placeholder="Account">
 <input id="amount" placeholder="Amount">
 
 <div class="btn" onclick="withdraw()">Submit</div>
 </div>
 
-<!-- NAV -->
+<!-- ================= OFFER ================= -->
+<div id="offer" class="page">
+<h3>🔥 Offers</h3>
+
+<div class="card">
+📱 Install App → 0.10 USDT
+<div class="btn" onclick="openOffer()">Start</div>
+</div>
+
+</div>
+
+<!-- ================= NAV ================= -->
 <div class="nav">
 <div onclick="showPage('task')">🏠</div>
+<div onclick="showPage('invite')">👥</div>
+<div onclick="showPage('offer')">🔥</div>
 <div onclick="showPage('withdraw')">💰</div>
 </div>
 
 <script>
 
-// ================= BASIC =================
 let tg = window.Telegram.WebApp;
 let user = tg.initDataUnsafe.user?.id || "test_user";
-document.getElementById("uid").innerText = user;
 
-let popupDiv = document.getElementById("popup");
-
-// ================= DEVICE =================
-let device = localStorage.getItem("dev");
-if(!device){
-  device = Math.random().toString(36).substring(2);
-  localStorage.setItem("dev",device);
-}
-
-// ================= AUTO CURRENCY =================
-let currency = "BDT";
-let symbol = "৳";
-let rate = 120;
-
-if(Intl.DateTimeFormat().resolvedOptions().timeZone.includes("Dubai")){
-  currency = "AED";
-  symbol = "AED ";
-  rate = 3.67;
-}
-
-// ================= POPUP =================
-function popup(text){
-  popupDiv.innerText = text;
-  popupDiv.style.display="block";
-  setTimeout(()=>popupDiv.style.display="none",2000);
-}
+uid.innerText = user;
 
 // ================= LOAD USER =================
 function loadUser(){
  fetch("/api/user/"+user)
  .then(r=>r.json())
  .then(d=>{
-   let money = d.balance * rate;
-   document.getElementById("bal").innerText =
-     money.toFixed(2) + " " + symbol;
-
-   document.getElementById("ads").innerText = d.totalAds;
+   bal.innerText = d.balance.toFixed(4);
+   ads.innerText = d.totalAds;
    loadTasks(d.totalAds);
  });
 }
-setInterval(loadUser,5000);
+setInterval(loadUser,3000);
 loadUser();
 
 // ================= WATCH AD =================
-let lastAd = 0;
-
 function watchAd(){
 
- let now = Date.now();
+ let adOpened = false;
 
- if(now - lastAd < 15000){
-   popup("⏳ Wait 15 sec");
-   return;
+ try{
+   window.open("https://www.profitablecpmratenetwork.com/kxq650wd?key=11d1ec5f3d88b1d9689e0547e8b15dd1");
+   adOpened = true;
+ }catch{
+   adOpened = false;
  }
 
- lastAd = now;
-
- window.open("https://www.profitablecpmratenetwork.com/kxq650wd?key=11d1ec5f3d88b1d9689e0547e8b15dd1");
+ // fallback ad
+ if(!adOpened){
+   window.open("https://google.com");
+ }
 
  setTimeout(()=>{
    fetch("/api/watch",{
      method:"POST",
      headers:{"Content-Type":"application/json"},
-     body:JSON.stringify({
-       id:user,
-       deviceId:device
-     })
+     body:JSON.stringify({id:user})
    })
    .then(r=>r.json())
-   .then(()=>{
-     popup("✅ Ad counted");
+   .then(d=>{
+     alert("Ad Counted ✅");
      loadUser();
    });
  },8000);
-
 }
 
-// ================= TASK SYSTEM =================
+// ================= TASK =================
 let TASKS = [
  {ads:5,reward:0.01},
  {ads:10,reward:0.02},
@@ -212,7 +195,7 @@ function loadTasks(total){
 
    html+=`
    <div class="card">
-   ${t.ads} Ads → ${(t.reward*rate).toFixed(2)} ${symbol}<br>
+   ${t.ads} Ads → ${t.reward} USDT<br>
    ${
      done
      ? `<div class="btn" onclick="claim(${i})">Claim</div>`
@@ -220,49 +203,46 @@ function loadTasks(total){
    }
    </div>`;
  });
- document.getElementById("tasks").innerHTML = html;
+ tasks.innerHTML=html;
 }
 
 // ================= CLAIM =================
 function claim(i){
-
  fetch("/api/taskReward",{
    method:"POST",
    headers:{"Content-Type":"application/json"},
-   body:JSON.stringify({
-     id:user,
-     index:i
-   })
+   body:JSON.stringify({id:user,index:i})
  })
  .then(r=>r.json())
  .then(d=>{
-   popup(d.msg);
+   alert(d.msg);
    loadUser();
  });
 }
 
 // ================= WITHDRAW =================
 function withdraw(){
-
- let amt = parseFloat(document.getElementById("amount").value);
-
- let usdt = amt / rate;
-
  fetch("/api/withdraw",{
    method:"POST",
    headers:{"Content-Type":"application/json"},
    body:JSON.stringify({
      id:user,
-     amount:usdt,
-     method:document.getElementById("method").value,
-     account:document.getElementById("account").value
+     amount:amount.value,
+     method:method.value,
+     account:account.value
    })
  })
  .then(r=>r.json())
- .then(d=>{
-   popup(d.msg);
- });
+ .then(d=>alert(d.msg));
 }
+
+// ================= OFFER =================
+function openOffer(){
+ window.open("https://google.com");
+}
+
+// ================= INVITE =================
+refLink.innerText = window.location.origin + "?ref=" + user;
 
 // ================= NAV =================
 function showPage(p){
