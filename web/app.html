@@ -7,63 +7,12 @@
 <title>Earn Pro</title>
 
 <style>
-body{
-  margin:0;
-  font-family:sans-serif;
-  background:#020617;
-  color:#fff;
-}
-
-.top{
-  margin:10px;
-  padding:20px;
-  border-radius:20px;
-  background:linear-gradient(45deg,#1e293b,#7c3aed);
-}
-
-.card{
-  margin:10px;
-  padding:15px;
-  border-radius:20px;
-  background:#1e293b;
-}
-
-.btn{
-  padding:18px;
-  border-radius:15px;
-  background:linear-gradient(45deg,#9333ea,#4f46e5);
-  text-align:center;
-  margin-top:10px;
-  font-size:18px;
-}
-
-.nav{
-  position:fixed;
-  bottom:0;
-  width:100%;
-  background:#020617;
-  display:flex;
-  justify-content:space-around;
-  padding:12px;
-}
-
-.nav div{
-  font-size:24px;
-}
-
-.page{
-  display:none;
-  padding:15px;
-  margin-bottom:80px;
-}
-
-input,select{
-  width:100%;
-  padding:10px;
-  margin-top:10px;
-  border-radius:10px;
-  border:none;
-}
+body{margin:0;background:#0f172a;color:#fff;font-family:sans-serif;}
+.top{padding:20px;background:#1e293b;}
+.btn{padding:15px;background:#9333ea;margin-top:10px;text-align:center;border-radius:10px;}
+.nav{position:fixed;bottom:0;width:100%;display:flex;justify-content:space-around;background:#020617;padding:10px;}
+.page{display:none;padding:15px;margin-bottom:70px;}
+.card{background:#1e293b;padding:10px;margin:10px;border-radius:10px;}
 </style>
 </head>
 
@@ -71,117 +20,73 @@ input,select{
 
 <div class="top">
 User: <span id="uid"></span><br>
-Balance: <span id="bal">0</span> USDT<br>
-Ads: <span id="ads">0</span>
+Balance: <span id="bal">0</span>
 </div>
 
-<!-- ================= TASK ================= -->
 <div id="task" class="page" style="display:block;">
-<h3>🎯 Tasks</h3>
-
-<div class="btn" onclick="watchAd()">🎥 Watch Ad</div>
-
+<h3>🎥 Tasks</h3>
+<div class="btn" onclick="watchAd()">Watch Ad</div>
 <div id="tasks"></div>
 </div>
 
-<!-- ================= INVITE ================= -->
-<div id="invite" class="page">
-<h3>👥 Invite</h3>
-
-<div class="card">
-Your Link:
-<br>
-<span id="refLink"></span>
-</div>
+<div id="offer" class="page">
+<h3>🔥 Earn Big</h3>
+<div class="btn" onclick="openOffer()">Open Offer</div>
 </div>
 
-<!-- ================= WITHDRAW ================= -->
 <div id="withdraw" class="page">
 <h3>💸 Withdraw</h3>
-
+<input id="amount" placeholder="Amount">
+<input id="account" placeholder="Account">
 <select id="method">
 <option>bkash</option>
 <option>nagad</option>
 <option>binance</option>
 </select>
-
-<input id="account" placeholder="Account">
-<input id="amount" placeholder="Amount">
-
 <div class="btn" onclick="withdraw()">Submit</div>
 </div>
 
-<!-- ================= OFFER ================= -->
-<div id="offer" class="page">
-<h3>🔥 Offers</h3>
-
-<div class="card">
-📱 Install App → 0.10 USDT
-<div class="btn" onclick="openOffer()">Start</div>
-</div>
-
-</div>
-
-<!-- ================= NAV ================= -->
 <div class="nav">
-<div onclick="showPage('task')">🏠</div>
-<div onclick="showPage('invite')">👥</div>
-<div onclick="showPage('offer')">🔥</div>
-<div onclick="showPage('withdraw')">💰</div>
+<div onclick="show('task')">🏠</div>
+<div onclick="show('offer')">🔥</div>
+<div onclick="show('withdraw')">💰</div>
 </div>
 
 <script>
-
-let tg = window.Telegram.WebApp;
-let user = tg.initDataUnsafe.user?.id || "test_user";
-
+let user = Math.random().toString(36).substring(2);
 uid.innerText = user;
 
-// ================= LOAD USER =================
-function loadUser(){
+let device = localStorage.getItem("dev") || Math.random();
+localStorage.setItem("dev",device);
+
+function show(p){
+ document.querySelectorAll(".page").forEach(x=>x.style.display="none");
+ document.getElementById(p).style.display="block";
+}
+
+function load(){
  fetch("/api/user/"+user)
  .then(r=>r.json())
  .then(d=>{
-   bal.innerText = d.balance.toFixed(4);
-   ads.innerText = d.totalAds;
-   loadTasks(d.totalAds);
+  bal.innerText = d.balance.toFixed(4);
+  loadTasks(d.totalAds);
  });
 }
-setInterval(loadUser,3000);
-loadUser();
+setInterval(load,3000);
+load();
 
-// ================= WATCH AD =================
 function watchAd(){
-
- let adOpened = false;
-
- try{
-   window.open("https://www.profitablecpmratenetwork.com/kxq650wd?key=11d1ec5f3d88b1d9689e0547e8b15dd1");
-   adOpened = true;
- }catch{
-   adOpened = false;
- }
-
- // fallback ad
- if(!adOpened){
-   window.open("https://google.com");
- }
+ window.open("https://www.profitablecpmratenetwork.com/kxq650wd?key=11d1ec5f3d88b1d9689e0547e8b15dd1");
 
  setTimeout(()=>{
-   fetch("/api/watch",{
-     method:"POST",
-     headers:{"Content-Type":"application/json"},
-     body:JSON.stringify({id:user})
-   })
-   .then(r=>r.json())
-   .then(d=>{
-     alert("Ad Counted ✅");
-     loadUser();
-   });
+  fetch("/api/watch",{
+   method:"POST",
+   headers:{"Content-Type":"application/json"},
+   body:JSON.stringify({id:user,deviceId:device})
+  });
  },8000);
 }
 
-// ================= TASK =================
 let TASKS = [
  {ads:5,reward:0.01},
  {ads:10,reward:0.02},
@@ -191,65 +96,38 @@ let TASKS = [
 function loadTasks(total){
  let html="";
  TASKS.forEach((t,i)=>{
-   let done = total>=t.ads;
-
-   html+=`
-   <div class="card">
-   ${t.ads} Ads → ${t.reward} USDT<br>
-   ${
-     done
-     ? `<div class="btn" onclick="claim(${i})">Claim</div>`
-     : `<div class="btn" style="background:gray">Locked</div>`
-   }
-   </div>`;
+  html+=`<div class="card">
+  ${t.ads} ads → ${t.reward}
+  <div class="btn" onclick="claim(${i})">Claim</div>
+  </div>`;
  });
  tasks.innerHTML=html;
 }
 
-// ================= CLAIM =================
 function claim(i){
  fetch("/api/taskReward",{
-   method:"POST",
-   headers:{"Content-Type":"application/json"},
-   body:JSON.stringify({id:user,index:i})
- })
- .then(r=>r.json())
- .then(d=>{
-   alert(d.msg);
-   loadUser();
+  method:"POST",
+  headers:{"Content-Type":"application/json"},
+  body:JSON.stringify({id:user,index:i})
  });
 }
 
-// ================= WITHDRAW =================
 function withdraw(){
  fetch("/api/withdraw",{
-   method:"POST",
-   headers:{"Content-Type":"application/json"},
-   body:JSON.stringify({
-     id:user,
-     amount:amount.value,
-     method:method.value,
-     account:account.value
-   })
- })
- .then(r=>r.json())
- .then(d=>alert(d.msg));
+  method:"POST",
+  headers:{"Content-Type":"application/json"},
+  body:JSON.stringify({
+   id:user,
+   amount:amount.value,
+   method:method.value,
+   account:account.value
+  })
+ });
 }
 
-// ================= OFFER =================
 function openOffer(){
- window.open("https://google.com");
+ window.open("https://www.cpagrip.com/showoffers.php?subid="+user);
 }
-
-// ================= INVITE =================
-refLink.innerText = window.location.origin + "?ref=" + user;
-
-// ================= NAV =================
-function showPage(p){
- document.querySelectorAll(".page").forEach(x=>x.style.display="none");
- document.getElementById(p).style.display="block";
-}
-
 </script>
 
 </body>
