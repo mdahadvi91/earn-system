@@ -1,242 +1,174 @@
-const express = require("express");
-const cors = require("cors");
-const path = require("path");
-const mongoose = require("mongoose");
+/* ===================================================== */
+/* 🔹 GLOBAL VARIABLES */
+/* 👉 User data (temporary - backend e later connect hobe) */
+/* ===================================================== */
 
-const app = express();
-app.use(cors());
-app.use(express.json());
+let balance = 0;
+let totalEarn = 0;
 
-const ADMIN_PASS = "1234";
+let adsWatched = 0;   // total ads count
+let taskStep = 5;     // first task = 5 ads
+let reward = 2.5;     // 5 ads = 2.5 BDT
 
-// ================= DB =================
-mongoose.connect(process.env.MONGO_URI,{
-  useNewUrlParser:true,
-  useUnifiedTopology:true
-})
-.then(()=>console.log("✅ DB Connected"))
-.catch(err=>console.log(err));
 
-// ================= MODEL =================
-const User = mongoose.model("User", new mongoose.Schema({
-  userId:String,
-  balance:{type:Number,default:0},
-  totalAds:{type:Number,default:0},
-  claimedTasks:{type:Array,default:[]},
-  refBy:String,
+/* ===================================================== */
+/* 🔥 LIVE BACKGROUND SYSTEM */
+/* 👉 assets folder theke image change hobe */
+/* ===================================================== */
 
-  ip:String,
-  deviceId:String,
-  lastWatch:Number,
+const backgrounds = [
+    "assets/bg1.jpg",
+    "assets/bg2.jpg",
+    "assets/bg3.jpg"
+];
 
-  suspicious:{type:Number,default:0},
-  blocked:{type:Boolean,default:false},
+let bgIndex = 0;
 
-  lastBonus:String
-}));
+function changeBackground() {
+    const bg = document.getElementById("bg");
 
-const EarnLog = mongoose.model("EarnLog", new mongoose.Schema({
-  userId:String,
-  amount:Number,
-  source:String,
-  time:{type:Date,default:Date.now}
-}));
+    bg.style.backgroundImage = `url(${backgrounds[bgIndex]})`;
 
-// ================= FRAUD =================
-async function checkFraud(user, ip, deviceId){
-
-  if(user.blocked) return "🚫 Blocked";
-
-  if(user.deviceId && user.deviceId !== deviceId){
-    user.suspicious += 3;
-  }
-
-  if(user.lastWatch && (Date.now()-user.lastWatch < 8000)){
-    user.suspicious += 2;
-  }
-
-  let count = await User.countDocuments({ip});
-  if(count > 2){
-    user.suspicious += 2;
-  }
-
-  if(user.suspicious >= 6){
-    user.blocked = true;
-  }
-
-  await user.save();
-  return user.blocked ? "🚫 Fraud detected" : null;
+    bgIndex++;
+    if (bgIndex >= backgrounds.length) {
+        bgIndex = 0;
+    }
 }
 
-// ================= STATIC =================
-app.use(express.static(path.join(__dirname,"web")));
+// 👉 First load
+changeBackground();
 
-app.get("/",(req,res)=>{
-  res.sendFile(path.join(__dirname,"web/app.html"));
-});
+// 👉 Every 5 sec change
+setInterval(changeBackground, 5000);
 
-// ================= USER =================
-app.get("/api/user/:id", async (req,res)=>{
-  let user = await User.findOne({userId:req.params.id});
 
-  if(!user){
-    user = await User.create({userId:req.params.id});
-  }
+/* ===================================================== */
+/* 📺 WATCH AD SYSTEM */
+/* 👉 Adsterra link use korba */
+/* ===================================================== */
 
-  res.json(user);
-});
+function watchAd() {
 
-// ================= OFFER CLICK =================
-app.post("/api/watch", async (req,res)=>{
-  const {id,deviceId} = req.body;
+    // 👉 Replace with your Adsterra direct link
+    let adLink = "https://your-adsterra-link.com";
 
-  let ip = req.headers['x-forwarded-for'] || req.socket.remoteAddress;
+    // 👉 Open ad
+    window.open(adLink, "_blank");
 
-  let user = await User.findOne({userId:id});
-  if(!user) user = await User.create({userId:id});
+    // 👉 Count ads
+    adsWatched++;
 
-  let fraud = await checkFraud(user, ip, deviceId);
-  if(fraud) return res.json({success:false,msg:fraud});
+    updateProgress();
 
-  user.totalAds += 1;
-  user.ip = ip;
-  user.deviceId = deviceId;
-  user.lastWatch = Date.now();
+}
 
-  await user.save();
 
-  res.json({success:true});
-});
+/* ===================================================== */
+/* 📊 PROGRESS UPDATE */
+/* ===================================================== */
 
-// ================= POSTBACK =================
-app.get("/api/postback", async (req,res)=>{
-  let { subid, payout } = req.query;
+function updateProgress() {
 
-  let user = await User.findOne({userId:subid});
-  if(!user) return res.send("no user");
+    document.getElementById("progress").innerText =
+        adsWatched + " / " + taskStep + " Ads Completed";
 
-  let total = parseFloat(payout || 0);
+    // 👉 Task complete হলে claim button show
+    if (adsWatched >= taskStep) {
+        document.getElementById("claimBtn").style.display = "block";
+    }
+}
 
-  let userShare = total * 0.5;
 
-  user.balance += userShare;
-  await user.save();
+/* ===================================================== */
+/* 💰 CLAIM REWARD SYSTEM */
+/* 👉 5 ads = 2.5 BDT, 10 ads = 5 BDT */
+/* ===================================================== */
 
-  await EarnLog.create({
-    userId:subid,
-    amount:userShare,
-    source:"cpa"
-  });
+function claimReward() {
 
-  res.send("ok");
-});
+    // 👉 Balance add
+    balance += reward;
+    totalEarn += reward;
 
-// ================= DAILY BONUS =================
-app.post("/api/daily-bonus", async (req,res)=>{
-  let { id } = req.body;
+    // 👉 Reset ads counter
+    adsWatched = 0;
 
-  let user = await User.findOne({userId:id});
-  if(!user) return res.json({success:false});
+    // 👉 Next level system (5 → 10 → 15 ...)
+    taskStep += 5;
+    reward += 2.5;
 
-  let today = new Date().toDateString();
+    // 👉 UI update
+    document.getElementById("claimBtn").style.display = "none";
 
-  if(user.lastBonus === today){
-    return res.json({success:false,msg:"Already claimed"});
-  }
+    updateBalance();
+    updateProgress();
 
-  let earnToday = await EarnLog.aggregate([
-    {
-      $match:{
-        userId:id,
-        time:{$gte:new Date(new Date().setHours(0,0,0,0))}
-      }
-    },
-    {$group:{_id:null,total:{$sum:"$amount"}}}
-  ]);
+    alert("Reward Added: " + reward + " BDT");
 
-  let total = earnToday[0]?.total || 0;
+}
 
-  if(total < 0.2){
-    return res.json({success:false,msg:"Earn 0.2$ first"});
-  }
 
-  let bonus = 0.05;
+/* ===================================================== */
+/* 💰 BALANCE UPDATE */
+/* ===================================================== */
 
-  user.balance += bonus;
-  user.lastBonus = today;
+function updateBalance() {
 
-  await user.save();
+    document.getElementById("balance").innerText =
+        balance.toFixed(2) + " BDT";
 
-  await EarnLog.create({
-    userId:id,
-    amount:bonus,
-    source:"daily"
-  });
+    // 👉 AED convert (approx)
+    let aed = balance * 0.033;
 
-  res.json({success:true,msg:"Bonus added"});
-});
+    document.getElementById("balanceAED").innerText =
+        aed.toFixed(2) + " AED";
 
-// ================= LEADERBOARD =================
-app.get("/api/leaderboard", async (req,res)=>{
-  let top = await EarnLog.aggregate([
-    {$group:{_id:"$userId",total:{$sum:"$amount"}}},
-    {$sort:{total:-1}},
-    {$limit:10}
-  ]);
+    document.getElementById("totalEarn").innerText =
+        totalEarn.toFixed(2);
+}
 
-  res.json(top);
-});
 
-// ================= WITHDRAW =================
-let withdraws = [];
+/* ===================================================== */
+/* 📂 SIDEBAR MENU */
+/* ===================================================== */
 
-app.post("/api/withdraw", async (req,res)=>{
-  let { id, amount } = req.body;
+function toggleMenu() {
 
-  let user = await User.findOne({userId:id});
+    let sidebar = document.getElementById("sidebar");
 
-  if(!user || user.balance < amount){
-    return res.json({success:false,msg:"Low balance"});
-  }
+    if (sidebar.style.left === "0px") {
+        sidebar.style.left = "-200px";
+    } else {
+        sidebar.style.left = "0px";
+    }
+}
 
-  withdraws.push({
-    ...req.body,
-    status:"pending",
-    time:new Date()
-  });
 
-  res.json({success:true});
-});
+/* ===================================================== */
+/* 🔗 NAVIGATION SYSTEM */
+/* 👉 Page redirect */
+/* ===================================================== */
 
-app.get("/api/withdraw/history",(req,res)=>{
-  res.json(withdraws);
-});
+function goWithdraw() {
+    window.location.href = "pages/withdraw.html";
+}
 
-// ================= ADMIN =================
-app.get("/api/admin/withdraws",(req,res)=>{
-  if(req.query.pass !== ADMIN_PASS) return res.json([]);
-  res.json(withdraws);
-});
+function goInvite() {
+    window.location.href = "pages/invite.html";
+}
 
-app.post("/api/admin/approve", async (req,res)=>{
-  const { index, pass } = req.body;
+function openOffers() {
+    window.location.href = "pages/offers.html";
+}
 
-  if(pass !== ADMIN_PASS) return res.json({success:false});
+function openOfferwall() {
+    window.location.href = "pages/offerwall.html";
+}
 
-  let w = withdraws[index];
-  if(!w) return res.json({success:false});
 
-  let user = await User.findOne({userId:w.id});
+/* ===================================================== */
+/* 🔄 INITIAL LOAD */
+/* ===================================================== */
 
-  if(user){
-    user.balance -= parseFloat(w.amount);
-    await user.save();
-  }
-
-  w.status="approved";
-
-  res.json({success:true});
-});
-
-// ================= START =================
-app.listen(3000,()=>console.log("🚀 Running on 3000"));
+updateBalance();
+updateProgress();
