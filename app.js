@@ -12,7 +12,16 @@ app.use(express.json());
 
 
 /* ===================================================== */
-/* 🟢 DATABASE CONNECT */
+/* 🟢 ROOT CHECK */
+/* ===================================================== */
+
+app.get("/", (req, res) => {
+  res.send("API Running ✅");
+});
+
+
+/* ===================================================== */
+/* 🟢 DATABASE */
 /* ===================================================== */
 
 mongoose.connect(process.env.MONGO_URI)
@@ -22,7 +31,6 @@ mongoose.connect(process.env.MONGO_URI)
 
 /* ===================================================== */
 /* 👤 USER MODEL */
-/* 👉 Balance + Ads count only */
 /* ===================================================== */
 
 const User = mongoose.model("User", new mongoose.Schema({
@@ -49,8 +57,7 @@ app.get("/api/user/:id", async (req,res)=>{
 
 
 /* ===================================================== */
-/* 📺 WATCH AD COUNT */
-/* 👉 Only count (reward frontend theke control hobe) */
+/* 📺 WATCH AD */
 /* ===================================================== */
 
 app.post("/api/watch", async (req,res)=>{
@@ -61,15 +68,15 @@ app.post("/api/watch", async (req,res)=>{
   if(!user) user = await User.create({userId:id});
 
   user.totalAds += 1;
+
   await user.save();
 
-  res.json({success:true, totalAds:user.totalAds});
+  res.json({success:true});
 });
 
 
 /* ===================================================== */
 /* 💰 CLAIM REWARD */
-/* 👉 5 ads = reward add */
 /* ===================================================== */
 
 app.post("/api/claim", async (req,res)=>{
@@ -93,8 +100,7 @@ app.post("/api/claim", async (req,res)=>{
 
 /* ===================================================== */
 /* 🎯 OFFER POSTBACK */
-/* 👉 CMPGrid / Offerwall */
-/* 👉 75% user / 25% admin */
+/* 👉 75% USER / 25% ADMIN */
 /* ===================================================== */
 
 app.get("/api/postback", async (req,res)=>{
@@ -106,9 +112,10 @@ app.get("/api/postback", async (req,res)=>{
 
   let total = parseFloat(payout || 0);
 
-  let userShare = total * 0.75; // ✅ 75% user
+  let userShare = total * 0.75;
 
   user.balance += userShare;
+
   await user.save();
 
   res.send("ok");
@@ -128,7 +135,7 @@ app.post("/api/withdraw", async (req,res)=>{
   let user = await User.findOne({userId:id});
 
   if(!user || user.balance < amount){
-    return res.json({success:false,msg:"Low balance"});
+    return res.json({success:false, msg:"Low balance"});
   }
 
   withdraws.push({
@@ -154,9 +161,11 @@ app.get("/api/withdraw/history",(req,res)=>{
 
 
 /* ===================================================== */
-/* 🟢 SERVER START */
+/* 🚀 START SERVER */
 /* ===================================================== */
 
 const PORT = process.env.PORT || 3000;
 
-app.listen(PORT,()=>console.log("🚀 Server Running"));
+app.listen(PORT,()=>{
+  console.log("🚀 Server Running");
+});
