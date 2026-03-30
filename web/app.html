@@ -3,69 +3,17 @@
 <head>
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <script src="https://telegram.org/js/telegram-web-app.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 
 <title>Earn Pro</title>
 
 <style>
-body{
-  margin:0;
-  background:#0f172a;
-  color:#fff;
-  font-family:sans-serif;
-}
-
-.top{
-  padding:20px;
-  text-align:center;
-  background:#1e293b;
-}
-
-.container{
-  max-width:500px;
-  margin:auto;
-}
-
-.btn{
-  padding:15px;
-  background:#9333ea;
-  margin-top:10px;
-  text-align:center;
-  border-radius:10px;
-}
-
-.card{
-  background:#1e293b;
-  padding:12px;
-  margin:10px 0;
-  border-radius:10px;
-}
-
-.nav{
-  position:fixed;
-  bottom:0;
-  width:100%;
-  display:flex;
-  justify-content:space-around;
-  background:#020617;
-  padding:12px;
-  font-size:22px;
-}
-
-.page{
-  display:none;
-  padding:15px;
-  margin-bottom:80px;
-  text-align:center;
-}
-
-input,select{
-  width:100%;
-  padding:10px;
-  margin-top:10px;
-  border-radius:8px;
-  border:none;
-}
-
+body{margin:0;background:#0f172a;color:#fff;font-family:sans-serif;}
+.top{padding:20px;text-align:center;background:#1e293b;}
+.btn{padding:15px;background:#9333ea;margin-top:10px;text-align:center;border-radius:10px;}
+.card{background:#1e293b;padding:10px;margin:10px;border-radius:10px;}
+.nav{position:fixed;bottom:0;width:100%;display:flex;justify-content:space-around;background:#020617;padding:12px;font-size:22px;}
+.page{display:none;padding:15px;margin-bottom:80px;text-align:center;}
 </style>
 </head>
 
@@ -76,113 +24,76 @@ User: <span id="uid"></span><br>
 Balance: <span id="bal">0</span>
 </div>
 
-<div class="container">
-
-<!-- ================= TASK ================= -->
 <div id="task" class="page" style="display:block;">
 <h3>🎥 Watch & Earn</h3>
-
 <div class="btn" onclick="watchAd()">Watch Ad</div>
-
 <div id="tasks"></div>
+<canvas id="earnChart"></canvas>
 </div>
 
-<!-- ================= INVITE ================= -->
 <div id="invite" class="page">
-<h3>👥 Invite & Earn</h3>
-
-<div class="card">
-Total Users: <b id="totalUsers">0</b>
-</div>
-
-<div class="card">
-Your Link:<br>
-<span id="refLink"></span>
-</div>
-
+<h3>👥 Invite</h3>
+<div>Total Users: <span id="totalUsers"></span></div>
+<div id="refLink"></div>
 <div id="refUsers"></div>
 </div>
 
-<!-- ================= OFFER ================= -->
-<div id="offer" class="page">
-<h3>🔥 High Paying Offer</h3>
-<div class="btn" onclick="openOffer()">Start Offer</div>
+<div id="leaderboard" class="page">
+<h3>🏆 Leaderboard</h3>
+<div id="leaderList"></div>
 </div>
 
-<!-- ================= WITHDRAW ================= -->
 <div id="withdraw" class="page">
 <h3>💸 Withdraw</h3>
-
-<input id="amount" placeholder="Amount">
-<input id="account" placeholder="Account">
-
-<select id="method">
-<option>bkash</option>
-<option>nagad</option>
-<option>binance</option>
-</select>
-
+<input id="amount">
+<input id="account">
+<select id="method"><option>bkash</option></select>
 <div class="btn" onclick="withdraw()">Submit</div>
-
-<h4>✅ Successful Withdraw</h4>
 <div id="withdrawList"></div>
-
 </div>
 
-<!-- ================= ADMIN ================= -->
 <div id="admin" class="page">
-<h3>👑 Admin Panel</h3>
-
-<input id="adminPass" placeholder="Password">
+<input id="adminPass">
 <div class="btn" onclick="loadAdmin()">Load</div>
-
 <div id="adminList"></div>
 </div>
 
-</div>
-
-<!-- ================= NAV ================= -->
 <div class="nav">
 <div onclick="show('task')">🏠</div>
 <div onclick="show('invite')">👥</div>
-<div onclick="show('offer')">🔥</div>
+<div onclick="show('leaderboard')">🏆</div>
 <div onclick="show('withdraw')">💰</div>
 <div onclick="show('admin')">👑</div>
 </div>
 
 <script>
 
-// ===== USER =====
-let tg = window.Telegram.WebApp;
-let user = tg.initDataUnsafe.user?.id || Math.random().toString(36).substring(2);
+let user = Math.random().toString(36).substring(2);
 uid.innerText = user;
 
-// ===== DEVICE =====
 let device = localStorage.getItem("dev") || Math.random();
 localStorage.setItem("dev", device);
 
-// ===== NAV =====
 function show(p){
  document.querySelectorAll(".page").forEach(x=>x.style.display="none");
  document.getElementById(p).style.display="block";
 
  if(p==="invite") loadInvite();
- if(p==="withdraw") loadWithdrawHistory();
+ if(p==="leaderboard") loadLeaderboard();
 }
 
-// ===== LOAD USER =====
 function load(){
  fetch("/api/user/"+user)
  .then(r=>r.json())
  .then(d=>{
-   bal.innerText = d.balance.toFixed(4);
-   loadTasks(d.totalAds);
+  bal.innerText=d.balance.toFixed(4);
+  loadTasks(d.totalAds);
+  loadGraph();
  });
 }
 setInterval(load,3000);
 load();
 
-// ===== WATCH AD =====
 function watchAd(){
  window.open("https://www.profitablecpmratenetwork.com/kxq650wd?key=11d1ec5f3d88b1d9689e0547e8b15dd1");
 
@@ -191,122 +102,83 @@ function watchAd(){
    method:"POST",
    headers:{"Content-Type":"application/json"},
    body:JSON.stringify({id:user,deviceId:device})
-  }).then(()=>load());
+  });
  },8000);
 }
 
-// ===== TASK =====
-let TASKS = [
- {ads:5,reward:0.01},
- {ads:10,reward:0.02},
- {ads:20,reward:0.05}
-];
+let TASKS=[{ads:5,reward:0.01},{ads:10,reward:0.02}];
 
 function loadTasks(total){
  let html="";
  TASKS.forEach((t,i)=>{
-  let done = total>=t.ads;
-
-  html+=`
-  <div class="card">
-  ${t.ads} Ads → ${t.reward}
-  ${
-    done
-    ? `<div class="btn" onclick="claim(${i})">Claim</div>`
-    : `<div class="btn" style="background:gray">Locked</div>`
-  }
-  </div>`;
+  html+=`<div class="card">${t.ads} Ads <div class="btn" onclick="claim(${i})">Claim</div></div>`;
  });
  tasks.innerHTML=html;
 }
 
 function claim(i){
- fetch("/api/taskReward",{
-  method:"POST",
-  headers:{"Content-Type":"application/json"},
-  body:JSON.stringify({id:user,index:i})
- })
- .then(r=>r.json())
- .then(d=>alert(d.msg));
+ fetch("/api/taskReward",{method:"POST",headers:{"Content-Type":"application/json"},
+ body:JSON.stringify({id:user,index:i})});
 }
 
-// ===== INVITE =====
-refLink.innerText = location.origin + "?ref=" + user;
+function loadGraph(){
+ fetch("/api/earn-graph/"+user)
+ .then(r=>r.json())
+ .then(d=>{
+  let labels=d.map(x=>new Date(x.time).toLocaleTimeString());
+  let values=d.map(x=>x.amount);
+
+  new Chart(document.getElementById("earnChart"),{
+   type:"line",
+   data:{labels,datasets:[{data:values}]}
+  });
+ });
+}
 
 function loadInvite(){
  fetch("/api/invite/"+user)
  .then(r=>r.json())
  .then(d=>{
-   totalUsers.innerText = d.total;
+  totalUsers.innerText=d.total;
+  refLink.innerText=location.origin+"?ref="+user;
 
-   let html="";
-   d.users.forEach(u=>{
-     html+=`<div class="card">${u}</div>`;
-   });
-   refUsers.innerHTML = html;
+  let html="";
+  d.users.forEach(u=>html+=`<div class="card">${u}</div>`);
+  refUsers.innerHTML=html;
  });
 }
 
-// ===== WITHDRAW =====
+function loadLeaderboard(){
+ fetch("/api/leaderboard")
+ .then(r=>r.json())
+ .then(d=>{
+  let html="";
+  d.forEach(u=>html+=`<div class="card">${u.userId} - ${u.balance}</div>`);
+  leaderList.innerHTML=html;
+ });
+}
+
 function withdraw(){
- fetch("/api/withdraw",{
-  method:"POST",
-  headers:{"Content-Type":"application/json"},
-  body:JSON.stringify({
-   id:user,
-   amount:amount.value,
-   method:method.value,
-   account:account.value
-  })
- }).then(r=>r.json()).then(d=>alert(d.msg));
+ fetch("/api/withdraw",{method:"POST",headers:{"Content-Type":"application/json"},
+ body:JSON.stringify({id:user,amount:amount.value,method:method.value,account:account.value})});
 }
 
-function loadWithdrawHistory(){
- fetch("/api/withdraw/history")
- .then(r=>r.json())
- .then(data=>{
-   let html="";
-   data.forEach(w=>{
-     if(w.status==="approved"){
-       html+=`<div class="card">${w.id} - ${w.amount}</div>`;
-     }
-   });
-   withdrawList.innerHTML = html;
- });
-}
-
-// ===== OFFER =====
-function openOffer(){
- window.open("https://www.cpagrip.com/showoffers.php?subid="+user);
-}
-
-// ===== ADMIN =====
 function loadAdmin(){
- let pass = adminPass.value;
-
- fetch("/api/admin/withdraws?pass="+pass)
+ fetch("/api/admin/withdraws?pass="+adminPass.value)
  .then(r=>r.json())
- .then(data=>{
-   let html="";
-   data.forEach((w,i)=>{
-     html+=`
-     <div class="card">
-     ${w.id} - ${w.amount}<br>
-     ${w.method} - ${w.account}<br>
-
-     <div class="btn" onclick="approve(${i})">Approve</div>
-     </div>`;
-   });
-   adminList.innerHTML=html;
+ .then(d=>{
+  let html="";
+  d.forEach((w,i)=>{
+   html+=`<div class="card">${w.id} - ${w.amount}
+   <div class="btn" onclick="approve(${i})">Approve</div></div>`;
+  });
+  adminList.innerHTML=html;
  });
 }
 
 function approve(i){
- fetch("/api/admin/approve",{
-  method:"POST",
-  headers:{"Content-Type":"application/json"},
-  body:JSON.stringify({index:i, pass:adminPass.value})
- }).then(loadAdmin);
+ fetch("/api/admin/approve",{method:"POST",headers:{"Content-Type":"application/json"},
+ body:JSON.stringify({index:i,pass:adminPass.value})});
 }
 
 </script>
