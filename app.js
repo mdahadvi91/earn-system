@@ -2,14 +2,13 @@ const express = require("express");
 const cors = require("cors");
 const path = require("path");
 const mongoose = require("mongoose");
-const fetch = require("node-fetch");
 
 const app = express();
 app.use(cors());
 app.use(express.json());
 
 // 🔐 ADMIN PASS
-const ADMIN_PASS = process.env.ADMIN_PASS;
+const ADMIN_PASS = process.env.ADMIN_PASS || "1234";
 
 // ================= DB =================
 mongoose.connect(process.env.MONGO_URI)
@@ -20,40 +19,35 @@ mongoose.connect(process.env.MONGO_URI)
 const User = mongoose.model("User", new mongoose.Schema({
   userId: String,
   balance: { type: Number, default: 0 },
-  referrals: { type: Number, default: 0 },
-  refBy: String,
-  lastClaim: Number,
-  dailyEarn: { type: Number, default: 0 },
-  lastDay: String,
+
   totalAds: { type: Number, default: 0 },
+  claimedTasks: { type: Array, default: [] },
+
   ip: String,
-  device: String,
   deviceId: String,
-  lastCPA: Number,
 
   suspicious: { type: Number, default: 0 },
   blocked: { type: Boolean, default: false }
 }));
 
-// ================= FRAUD AI =================
+// ================= TASK CONFIG =================
+let TASKS = [
+  {ads:5, reward:0.01},
+  {ads:10, reward:0.02},
+  {ads:20, reward:0.05}
+];
+
+// ================= FRAUD CHECK =================
 async function checkFraud(user, ip){
   if(user.blocked) return "🚫 Account blocked";
 
   let count = await User.countDocuments({ip});
   if(count > 3) user.suspicious += 1;
 
-  if(user.lastClaim && (Date.now() - user.lastClaim < 5000)){
-    user.suspicious += 1;
-  }
-
-  if(user.totalAds > 50 && user.dailyEarn < 0.01){
-    user.suspicious += 1;
-  }
-
   if(user.suspicious >= 5){
     user.blocked = true;
     await user.save();
-    return "🚫 Suspicious activity blocked";
+    return "🚫 Suspicious activity";
   }
 
   await user.save();
@@ -73,33 +67,21 @@ async function checkDevice(user, deviceId){
   if(user.deviceId !== deviceId){
     user.blocked = true;
     await user.save();
-    return "🚫 Multiple device detected";
+    return "🚫 Multiple device not allowed";
   }
 
   return null;
 }
 
-// ================= VPN CHECK =================
-async function checkVPN(ip){
-  try{
-    let res = await fetch(`http://ip-api.com/json/${ip}?fields=proxy,hosting`);
-    let data = await res.json();
-    if(data.proxy || data.hosting) return true;
-    return false;
-  }catch{
-    return false;
-  }
-}
-
 // ================= STATIC =================
 app.use(express.static(path.join(__dirname,"web")));
+
 app.get("/", (req,res)=>{
   res.sendFile(path.join(__dirname,"web/app.html"));
 });
 
 // ================= USER =================
 app.get("/api/user/:id", async (req,res)=>{
-  let { ref } = req.query;
   let ip = req.headers['x-forwarded-for'] || req.socket.remoteAddress;
 
   let user = await User.findOne({userId:req.params.id});
@@ -107,75 +89,62 @@ app.get("/api/user/:id", async (req,res)=>{
   if(!user){
     user = await User.create({
       userId:req.params.id,
-      refBy: ref || null,
       ip
     });
-
-    if(ref && ref !== req.params.id){
-      let r = await User.findOne({userId:ref});
-      if(r){
-        r.balance += 0.02;
-        r.referrals += 1;
-        await r.save();
-      }
-    }
   }
 
   res.json(user);
 });
 
-// ================= REWARD =================
-app.post("/api/reward", async (req,res)=>{
-  const { id, device } = req.body;
+// ================= WATCH AD =================
+app.post("/api/watch", async (req,res)=>{
+  const { id, deviceId } = req.body;
 
   let ip = req.headers['x-forwarded-for'] || req.socket.remoteAddress;
 
   let user = await User.findOne({userId:id});
   if(!user) user = await User.create({userId:id});
 
-  // 🔥 FRAUD
+  // fraud check
   let fraud = await checkFraud(user, ip);
-  if(fraud) return res.json({success:false, msg: fraud});
+  if(fraud) return res.json({success:false, msg:fraud});
 
-  // 🔥 DEVICE
-  let deviceCheck = await checkDevice(user, device);
-  if(deviceCheck) return res.json({success:false, msg: deviceCheck});
+  // device check
+  let deviceCheck = await checkDevice(user, deviceId);
+  if(deviceCheck) return res.json({success:false, msg:deviceCheck});
 
-  // 🔥 VPN
-  let vpn = await checkVPN(ip);
-  if(vpn) return res.json({success:false, msg:"🚫 VPN not allowed"});
-
-  const now = Date.now();
-  const today = new Date().toDateString();
-
-  if(user.lastDay !== today){
-    user.dailyEarn = 0;
-    user.lastDay = today;
-  }
-
-  if(user.lastClaim && (now - user.lastClaim < 20000)){
-    return res.json({success:false, msg:"⏳ Wait 20 sec"});
-  }
-
-  if(user.dailyEarn >= 0.05){
-    return res.json({success:false, msg:"🚫 Daily limit"});
-  }
-
-  const reward = (Math.random()*0.002 + 0.001);
-
-  user.balance += reward;
-  user.dailyEarn += reward;
   user.totalAds += 1;
-  user.lastClaim = now;
   user.ip = ip;
-  user.device = device;
 
   await user.save();
 
-  res.json({
-    success:true,
-    msg:`💰 ${reward.toFixed(4)} USDT added`
-  });
+  res.json({success:true});
+});
+
+// ================= TASK CLAIM =================
+app.post("/api/taskReward", async (req,res)=>{
+  const { id, index } = req.body;
+
+  let user = await User.findOne({userId:id});
+  if(!user) return res.json({success:false});
+
+  let task = TASKS[index];
+  if(!task) return res.json({success:false});
+
+  if(user.totalAds < task.ads){
+    return res.json({success:false, msg:"❌ Task not completed"});
+  }
+
+  if(user.claimedTasks.includes(index)){
+    return res.json({success:false, msg:"⚠ Already claimed"});
+  }
+
+  user.balance += task.reward;
+  user.claimedTasks.push(index);
+
+  await user.save();
+
+  res.json({success:true, msg:"💰 Reward added"});
 });
 
 // ================= WITHDRAW =================
@@ -253,16 +222,6 @@ app.post("/api/admin/reject", (req,res)=>{
 
   res.json({success:true});
 });
-
-// ================= LEADERBOARD =================
-app.get("/api/leaderboard", async (req,res)=>{
-  let users = await User.find().sort({balance:-1}).limit(20);
-  res.json(users);
-});
-
-// ================= BOT =================
-const bot = require("./bot");
-app.use(bot);
 
 // ================= START =================
 app.listen(3000,()=>console.log("🚀 Server Running"));
