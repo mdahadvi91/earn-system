@@ -1,174 +1,162 @@
 /* ===================================================== */
-/* 🔹 GLOBAL VARIABLES */
-/* 👉 User data (temporary - backend e later connect hobe) */
+/* 🔥 BASIC SETUP */
 /* ===================================================== */
 
-let balance = 0;
-let totalEarn = 0;
+const express = require("express");
+const cors = require("cors");
+const mongoose = require("mongoose");
 
-let adsWatched = 0;   // total ads count
-let taskStep = 5;     // first task = 5 ads
-let reward = 2.5;     // 5 ads = 2.5 BDT
-
-
-/* ===================================================== */
-/* 🔥 LIVE BACKGROUND SYSTEM */
-/* 👉 assets folder theke image change hobe */
-/* ===================================================== */
-
-const backgrounds = [
-    "assets/bg1.jpg",
-    "assets/bg2.jpg",
-    "assets/bg3.jpg"
-];
-
-let bgIndex = 0;
-
-function changeBackground() {
-    const bg = document.getElementById("bg");
-
-    bg.style.backgroundImage = `url(${backgrounds[bgIndex]})`;
-
-    bgIndex++;
-    if (bgIndex >= backgrounds.length) {
-        bgIndex = 0;
-    }
-}
-
-// 👉 First load
-changeBackground();
-
-// 👉 Every 5 sec change
-setInterval(changeBackground, 5000);
+const app = express();
+app.use(cors());
+app.use(express.json());
 
 
 /* ===================================================== */
-/* 📺 WATCH AD SYSTEM */
-/* 👉 Adsterra link use korba */
+/* 🟢 DATABASE CONNECT */
 /* ===================================================== */
 
-function watchAd() {
-
-    // 👉 Replace with your Adsterra direct link
-    let adLink = "https://your-adsterra-link.com";
-
-    // 👉 Open ad
-    window.open(adLink, "_blank");
-
-    // 👉 Count ads
-    adsWatched++;
-
-    updateProgress();
-
-}
+mongoose.connect(process.env.MONGO_URI)
+.then(()=>console.log("✅ DB Connected"))
+.catch(err=>console.log(err));
 
 
 /* ===================================================== */
-/* 📊 PROGRESS UPDATE */
+/* 👤 USER MODEL */
+/* 👉 Balance + Ads count only */
 /* ===================================================== */
 
-function updateProgress() {
-
-    document.getElementById("progress").innerText =
-        adsWatched + " / " + taskStep + " Ads Completed";
-
-    // 👉 Task complete হলে claim button show
-    if (adsWatched >= taskStep) {
-        document.getElementById("claimBtn").style.display = "block";
-    }
-}
+const User = mongoose.model("User", new mongoose.Schema({
+  userId: String,
+  balance: { type: Number, default: 0 },
+  totalAds: { type: Number, default: 0 }
+}));
 
 
 /* ===================================================== */
-/* 💰 CLAIM REWARD SYSTEM */
-/* 👉 5 ads = 2.5 BDT, 10 ads = 5 BDT */
+/* 📊 GET USER */
 /* ===================================================== */
 
-function claimReward() {
+app.get("/api/user/:id", async (req,res)=>{
 
-    // 👉 Balance add
-    balance += reward;
-    totalEarn += reward;
+  let user = await User.findOne({userId:req.params.id});
 
-    // 👉 Reset ads counter
-    adsWatched = 0;
+  if(!user){
+    user = await User.create({userId:req.params.id});
+  }
 
-    // 👉 Next level system (5 → 10 → 15 ...)
-    taskStep += 5;
-    reward += 2.5;
-
-    // 👉 UI update
-    document.getElementById("claimBtn").style.display = "none";
-
-    updateBalance();
-    updateProgress();
-
-    alert("Reward Added: " + reward + " BDT");
-
-}
+  res.json(user);
+});
 
 
 /* ===================================================== */
-/* 💰 BALANCE UPDATE */
+/* 📺 WATCH AD COUNT */
+/* 👉 Only count (reward frontend theke control hobe) */
 /* ===================================================== */
 
-function updateBalance() {
+app.post("/api/watch", async (req,res)=>{
 
-    document.getElementById("balance").innerText =
-        balance.toFixed(2) + " BDT";
+  let { id } = req.body;
 
-    // 👉 AED convert (approx)
-    let aed = balance * 0.033;
+  let user = await User.findOne({userId:id});
+  if(!user) user = await User.create({userId:id});
 
-    document.getElementById("balanceAED").innerText =
-        aed.toFixed(2) + " AED";
+  user.totalAds += 1;
+  await user.save();
 
-    document.getElementById("totalEarn").innerText =
-        totalEarn.toFixed(2);
-}
-
-
-/* ===================================================== */
-/* 📂 SIDEBAR MENU */
-/* ===================================================== */
-
-function toggleMenu() {
-
-    let sidebar = document.getElementById("sidebar");
-
-    if (sidebar.style.left === "0px") {
-        sidebar.style.left = "-200px";
-    } else {
-        sidebar.style.left = "0px";
-    }
-}
+  res.json({success:true, totalAds:user.totalAds});
+});
 
 
 /* ===================================================== */
-/* 🔗 NAVIGATION SYSTEM */
-/* 👉 Page redirect */
+/* 💰 CLAIM REWARD */
+/* 👉 5 ads = reward add */
 /* ===================================================== */
 
-function goWithdraw() {
-    window.location.href = "pages/withdraw.html";
-}
+app.post("/api/claim", async (req,res)=>{
 
-function goInvite() {
-    window.location.href = "pages/invite.html";
-}
+  let { id, amount } = req.body;
 
-function openOffers() {
-    window.location.href = "pages/offers.html";
-}
+  let user = await User.findOne({userId:id});
+  if(!user) return res.json({success:false});
 
-function openOfferwall() {
-    window.location.href = "pages/offerwall.html";
-}
+  user.balance += amount;
+  user.totalAds = 0;
+
+  await user.save();
+
+  res.json({
+    success:true,
+    balance:user.balance
+  });
+});
 
 
 /* ===================================================== */
-/* 🔄 INITIAL LOAD */
+/* 🎯 OFFER POSTBACK */
+/* 👉 CMPGrid / Offerwall */
+/* 👉 75% user / 25% admin */
 /* ===================================================== */
 
-updateBalance();
-updateProgress();
+app.get("/api/postback", async (req,res)=>{
+
+  let { subid, payout } = req.query;
+
+  let user = await User.findOne({userId:subid});
+  if(!user) return res.send("no user");
+
+  let total = parseFloat(payout || 0);
+
+  let userShare = total * 0.75; // ✅ 75% user
+
+  user.balance += userShare;
+  await user.save();
+
+  res.send("ok");
+});
+
+
+/* ===================================================== */
+/* 💸 WITHDRAW */
+/* ===================================================== */
+
+let withdraws = [];
+
+app.post("/api/withdraw", async (req,res)=>{
+
+  let { id, amount, method, number } = req.body;
+
+  let user = await User.findOne({userId:id});
+
+  if(!user || user.balance < amount){
+    return res.json({success:false,msg:"Low balance"});
+  }
+
+  withdraws.push({
+    id,
+    amount,
+    method,
+    number,
+    status:"pending",
+    time:new Date()
+  });
+
+  res.json({success:true});
+});
+
+
+/* ===================================================== */
+/* 📜 WITHDRAW HISTORY */
+/* ===================================================== */
+
+app.get("/api/withdraw/history",(req,res)=>{
+  res.json(withdraws);
+});
+
+
+/* ===================================================== */
+/* 🟢 SERVER START */
+/* ===================================================== */
+
+const PORT = process.env.PORT || 3000;
+
+app.listen(PORT,()=>console.log("🚀 Server Running"));
