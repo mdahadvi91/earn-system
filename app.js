@@ -7,13 +7,17 @@ const app = express();
 app.use(cors());
 app.use(express.json());
 
-// 🔐 ADMIN PASS
+// ================= SAFE ENV =================
 const ADMIN_PASS = process.env.ADMIN_PASS || "1234";
+const MONGO_URI = process.env.MONGO_URI || "mongodb://127.0.0.1:27017/earn";
 
 // ================= DB =================
-mongoose.connect(process.env.MONGO_URI)
+mongoose.connect(MONGO_URI)
 .then(()=>console.log("✅ DB Connected"))
-.catch(err=>console.log("❌ DB Error:", err));
+.catch(err=>{
+  console.log("❌ DB Error:", err);
+  process.exit(1); // crash safe
+});
 
 // ================= MODEL =================
 const User = mongoose.model("User", new mongoose.Schema({
@@ -27,7 +31,9 @@ const User = mongoose.model("User", new mongoose.Schema({
   deviceId: String,
 
   suspicious: { type: Number, default: 0 },
-  blocked: { type: Boolean, default: false }
+  blocked: { type: Boolean, default: false },
+
+  lastWithdraw: Number
 }));
 
 // ================= TASK CONFIG =================
@@ -37,7 +43,7 @@ let TASKS = [
   {ads:20, reward:0.05}
 ];
 
-// ================= FRAUD CHECK =================
+// ================= FRAUD =================
 async function checkFraud(user, ip){
   if(user.blocked) return "🚫 Account blocked";
 
@@ -54,7 +60,7 @@ async function checkFraud(user, ip){
   return null;
 }
 
-// ================= DEVICE LOCK =================
+// ================= DEVICE =================
 async function checkDevice(user, deviceId){
   if(!deviceId) return null;
 
@@ -67,7 +73,7 @@ async function checkDevice(user, deviceId){
   if(user.deviceId !== deviceId){
     user.blocked = true;
     await user.save();
-    return "🚫 Multiple device not allowed";
+    return "🚫 Multiple device blocked";
   }
 
   return null;
@@ -96,7 +102,7 @@ app.get("/api/user/:id", async (req,res)=>{
   res.json(user);
 });
 
-// ================= WATCH AD =================
+// ================= WATCH =================
 app.post("/api/watch", async (req,res)=>{
   const { id, deviceId } = req.body;
 
@@ -105,11 +111,9 @@ app.post("/api/watch", async (req,res)=>{
   let user = await User.findOne({userId:id});
   if(!user) user = await User.create({userId:id});
 
-  // fraud check
   let fraud = await checkFraud(user, ip);
   if(fraud) return res.json({success:false, msg:fraud});
 
-  // device check
   let deviceCheck = await checkDevice(user, deviceId);
   if(deviceCheck) return res.json({success:false, msg:deviceCheck});
 
@@ -155,19 +159,29 @@ app.post("/api/withdraw", async (req,res)=>{
 
   let user = await User.findOne({userId:id});
 
-  if(user && user.blocked){
+  if(!user) return res.json({success:false});
+
+  if(user.blocked){
     return res.json({success:false, msg:"🚫 Account blocked"});
   }
 
   let amt = parseFloat(amount);
 
-  if(!user || user.balance < amt){
+  if(user.balance < amt){
     return res.json({success:false, msg:"❌ Low balance"});
   }
 
   if(amt < 1){
     return res.json({success:false, msg:"⚠ Min 1 USDT"});
   }
+
+  // 🔥 anti spam withdraw
+  if(user.lastWithdraw && Date.now() - user.lastWithdraw < 60000){
+    return res.json({success:false, msg:"⏳ Wait 1 min"});
+  }
+
+  user.lastWithdraw = Date.now();
+  await user.save();
 
   withdraws.push({
     id,
@@ -206,6 +220,8 @@ app.post("/api/admin/approve", async (req,res)=>{
   }
 
   w.status = "approved";
+
+  console.log("✅ APPROVED:", w.id);
 
   res.json({success:true});
 });
