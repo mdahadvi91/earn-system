@@ -1,0 +1,226 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+  <title>Earn Money Dashboard</title>
+
+  <!-- ================= STYLE ================= -->
+  <style>
+
+    /* 🔥 RESET */
+    *{
+      margin:0;
+      padding:0;
+      box-sizing:border-box;
+      font-family: 'Segoe UI', sans-serif;
+    }
+
+    body{
+      background:#0a0a0a;
+      color:white;
+      overflow-x:hidden;
+    }
+
+    /* ================= NEON SMOKE BG ================= */
+    body::before{
+      content:"";
+      position:fixed;
+      width:200%;
+      height:200%;
+      background: radial-gradient(circle at 30% 30%, #00f0ff, transparent),
+                  radial-gradient(circle at 70% 60%, #ff00ff, transparent),
+                  radial-gradient(circle at 50% 80%, #00ff88, transparent);
+      animation: smoke 15s infinite linear;
+      z-index:-1;
+      filter: blur(120px);
+    }
+
+    @keyframes smoke{
+      0%{transform:translate(0,0);}
+      50%{transform:translate(-20%, -10%);}
+      100%{transform:translate(0,0);}
+    }
+
+    /* ================= HEADER ================= */
+    .header{
+      padding:15px;
+      display:flex;
+      justify-content:space-between;
+      align-items:center;
+      backdrop-filter: blur(10px);
+    }
+
+    .menu-btn{
+      font-size:22px;
+      cursor:pointer;
+    }
+
+    .balance{
+      font-size:18px;
+      font-weight:bold;
+      color:#00ffcc;
+    }
+
+    /* ================= WELCOME ================= */
+    .welcome{
+      padding:20px;
+      font-size:14px;
+      line-height:1.6;
+      opacity:0.9;
+    }
+
+    /* ================= CARD ================= */
+    .card{
+      margin:15px;
+      padding:20px;
+      border-radius:15px;
+      background:rgba(255,255,255,0.05);
+      backdrop-filter: blur(10px);
+      box-shadow:0 0 20px rgba(0,255,255,0.2);
+    }
+
+    /* ================= FOOTER ================= */
+    .footer{
+      text-align:center;
+      padding:20px;
+      font-size:12px;
+      opacity:0.7;
+    }
+
+    .footer a{
+      color:#00ffff;
+      margin:0 8px;
+      text-decoration:none;
+    }
+
+    /* ================= BOTTOM NAV ================= */
+    .nav{
+      position:fixed;
+      bottom:0;
+      width:100%;
+      display:flex;
+      justify-content:space-around;
+      background:#111;
+      padding:10px 0;
+      border-top:1px solid #333;
+    }
+
+    .nav a{
+      text-align:center;
+      color:white;
+      text-decoration:none;
+      font-size:12px;
+    }
+
+    .nav a:hover{
+      color:#00ffff;
+    }
+
+    /* ================= SIDEBAR ================= */
+    .sidebar{
+      position:fixed;
+      top:0;
+      left:-250px;
+      width:250px;
+      height:100%;
+      background:#111;
+      padding:20px;
+      transition:0.3s;
+    }
+
+    .sidebar.active{
+      left:0;
+    }
+
+    .sidebar a{
+      display:block;
+      color:white;
+      margin:15px 0;
+      text-decoration:none;
+    }
+
+  </style>
+</head>
+
+<body>
+
+<!-- ================= SIDEBAR ================= -->
+<div class="sidebar" id="sidebar">
+  <!-- 🔥 PURPOSE: menu navigation -->
+  <a href="pages/invite.html">👥 Invite & Earn</a>
+  <a href="pages/withdraw.html">💸 Withdraw</a>
+</div>
+
+<!-- ================= HEADER ================= -->
+<div class="header">
+  <div class="menu-btn" onclick="toggleMenu()">☰</div>
+
+  <!-- 🔥 PURPOSE: real user balance show -->
+  <div class="balance">৳ 0.00</div>
+</div>
+
+<!-- ================= WELCOME TEXT ================= -->
+<div class="welcome">
+  🎉 Welcome to our real earning platform!  
+  Here you can earn real money by completing tasks, watching ads, and using offerwalls.  
+  💰 All earnings are real and based on verified actions only.  
+  🚀 Start exploring the earning options below and grow your balance daily.  
+  🔒 We use secure tracking systems to prevent fraud and ensure fairness.  
+  Invite your friends and boost your income even more! 💸
+</div>
+
+<!-- ================= MAIN CARD ================= -->
+<div class="card">
+  <h3>🔥 Start Earning</h3>
+  <p>Select any option below to begin your earning journey.</p>
+</div>
+
+<!-- ================= FOOTER ================= -->
+<div class="footer">
+  <!-- 🔥 PURPOSE: legal & info links -->
+  <a href="#">About</a> |
+  <a href="#">Contact</a> |
+  <a href="#">Privacy</a> |
+  <a href="#">Terms</a>
+</div>
+
+<!-- ================= BOTTOM NAV ================= -->
+<div class="nav">
+
+  <!-- 🔥 PURPOSE: 4 earning sections -->
+
+  <a href="pages/task.html">
+    📺<br>Task
+  </a>
+
+  <a href="pages/offer.html">
+    🎯<br>Offer
+  </a>
+
+  <a href="pages/offerwall.html">
+    📱<br>Offerwall
+  </a>
+
+  <a href="pages/extra.html">
+    ⚡<br>Extra
+  </a>
+
+</div>
+
+<!-- ================= SCRIPT ================= -->
+<script>
+
+/* 🔥 PURPOSE: sidebar toggle */
+function toggleMenu(){
+  document.getElementById("sidebar").classList.toggle("active");
+}
+
+/* 🔥 PURPOSE: future use (user data load) */
+// TODO: fetch user balance from server
+
+</script>
+
+</body>
+</html>
