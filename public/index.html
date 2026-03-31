@@ -3,86 +3,92 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-
 <title>Earn Dashboard</title>
 
 <style>
 
-/* ================= BODY ================= */
-body{
+/* ===== RESET ===== */
+*{
   margin:0;
+  padding:0;
+  box-sizing:border-box;
+}
+
+/* ===== BODY ===== */
+body{
   font-family:sans-serif;
+  background:#050505;
   color:white;
   overflow-x:hidden;
 }
 
-/* ================= ANIMATED BG ================= */
-body::before{
-  content:"";
-  position:fixed;
-  width:100%;
-  height:100%;
-  background:linear-gradient(270deg,#00c6ff,#0072ff,#00ffcc);
-  background-size:600% 600%;
-  animation:bg 12s ease infinite;
-  z-index:-1;
-}
-
-@keyframes bg{
-  0%{background-position:0% 50%;}
-  50%{background-position:100% 50%;}
-  100%{background-position:0% 50%;}
-}
-
-/* ================= HEADER ================= */
+/* ===== HEADER ===== */
 .header{
-  display:flex;
-  justify-content:space-between;
-  align-items:center;
-  padding:15px;
-  background:rgba(0,0,0,0.6);
-  backdrop-filter:blur(10px);
-  position:sticky;
+  position:fixed;
   top:0;
+  left:0;
+  width:100%;
+  height:60px;
+  background:#000;
+  display:flex;
+  align-items:center;
+  justify-content:center;
+  font-size:20px;
+  font-weight:bold;
   z-index:1000;
 }
 
-/* menu icon */
-.menu{
-  font-size:26px;
+/* menu button */
+.menuBtn{
+  position:absolute;
+  left:15px;
+  font-size:22px;
   cursor:pointer;
 }
 
-/* title */
-.title{
-  font-size:22px;
+/* ===== BALANCE (ANIMATED) ===== */
+.balance{
+  position:absolute;
+  right:15px;
+  font-size:20px;
   font-weight:bold;
+  background:linear-gradient(90deg,#00ffcc,#00ffff,#00ffcc);
+  background-size:200%;
+  -webkit-background-clip:text;
+  color:transparent;
+  animation:balanceGlow 2s linear infinite;
 }
 
-/* balance */
-.balance{
-  font-size:20px;
-  color:#00ffcc;
-  font-weight:bold;
+@keyframes balanceGlow{
+  0%{background-position:0%;}
+  100%{background-position:200%;}
 }
-/* ================= SIDEBAR ================= */
+
+/* ===== SIDEBAR ===== */
 .sidebar{
   position:fixed;
   top:0;
   left:-260px;
-  width:260px;
+  width:250px;
   height:100%;
   background:#111;
   padding:20px;
   transition:0.3s;
-  z-index:3000; /* 🔥 IMPORTANT FIX */
+  z-index:2000;
 }
 
 .sidebar.active{
   left:0;
 }
 
-/* 🔥 overlay background */
+.sidebar a{
+  display:block;
+  margin:15px 0;
+  color:white;
+  text-decoration:none;
+}
+
+/* ===== OVERLAY ===== */
 .overlay{
   position:fixed;
   top:0;
@@ -90,76 +96,84 @@ body::before{
   width:100%;
   height:100%;
   background:rgba(0,0,0,0.6);
-  z-index:2000;
   display:none;
+  z-index:1500;
 }
 
 .overlay.active{
   display:block;
 }
-  
 
-/* ================= CARD ================= */
-.card{
-  margin:20px;
-  padding:20px;
-  border-radius:15px;
-  background:rgba(0,0,0,0.6);
-  backdrop-filter:blur(10px);
+/* ===== CONTENT ===== */
+.container{
+  padding:80px 15px 120px;
 }
 
-/* title */
-.big{
-  font-size:22px;
+/* ===== CARD ===== */
+.card{
+  background:#0a1c1f;
+  padding:18px;
+  border-radius:12px;
+  margin-bottom:15px;
+  box-shadow:0 0 8px #00ffff33;
+}
+
+/* ===== WELCOME TEXT ===== */
+.welcomeTitle{
+  font-size:30px;
   font-weight:bold;
 }
 
-/* desc */
-.desc{
-  font-size:16px;
-  margin-top:10px;
-  color:#ddd;
+.welcomeText{
+  font-size:20px;
+  font-weight:600;
+  line-height:1.5;
+  opacity:0.9;
 }
 
-/* ================= FOOTER ================= */
-.footer{
-  margin-top:30px;
+/* ===== GRID ===== */
+.grid{
+  display:grid;
+  grid-template-columns:1fr 1fr;
+  gap:12px;
+}
+
+.box{
+  background:#000;
+  padding:18px;
+  border-radius:10px;
   text-align:center;
-  font-size:14px;
-  color:#ddd;
+  text-decoration:none;
+  color:white;
+  font-size:15px;
+  border:1px solid #00ffff55;
 }
 
-.footer-links{
-  margin-top:10px;
+/* ===== FOOTER TEXT ===== */
+.footerText{
+  text-align:center;
+  margin-top:20px;
+  font-size:13px;
+  opacity:0.7;
 }
 
-/* ================= NAV BAR ================= */
+/* ===== NAV ===== */
 .nav{
   position:fixed;
   bottom:0;
   width:100%;
-  background:#111;
+  background:#000;
   display:flex;
   justify-content:space-around;
-  padding:12px 0;
+  padding:10px 0;
   border-top:1px solid #222;
 }
 
 .nav a{
-  text-align:center;
   color:white;
   text-decoration:none;
-  font-size:14px;
-}
-
-.nav span{
-  font-size:20px;
-  display:block;
-}
-
-/* spacing */
-.space{
-  height:90px;
+  font-size:13px;
+  text-align:center;
 }
 
 </style>
@@ -167,79 +181,91 @@ body::before{
 
 <body>
 
-<!-- ================= SIDEBAR ================= -->
+<!-- ===== SIDEBAR ===== -->
 <div class="sidebar" id="sidebar">
-  <h3>⚙️ Menu</h3>
-  <a href="#">Dashboard</a>
-  <a href="#">Withdraw</a>
-  <a href="#">History</a>
-  <a href="#">Settings</a>
+  <h3>Menu</h3>
+
+  <a href="#">💸 Withdraw</a>
+  <a href="#">📊 History</a>
+  <a href="#">👤 Profile</a>
+  <a href="#">⚙ Settings</a>
+
 </div>
-  <!-- overlay -->
+
+<!-- overlay -->
 <div class="overlay" id="overlay" onclick="toggleMenu()"></div>
 
-<!-- ================= HEADER ================= -->
+<!-- ===== HEADER ===== -->
 <div class="header">
-  <div class="menu" onclick="toggleMenu()">☰</div>
-  <div class="title">Earn Dashboard</div>
+  <div class="menuBtn" onclick="toggleMenu()">☰</div>
+  Earn Dashboard
   <div class="balance" id="balance">৳ 0</div>
 </div>
 
-<!-- ================= MAIN ================= -->
-<div class="card">
-  <div class="big">💸 Withdraw</div>
-  <div class="desc">
-    Welcome to our real earning platform! Earn money by completing tasks, watching ads & offerwalls. 🚀
+<!-- ===== CONTENT ===== -->
+<div class="container">
+
+  <!-- welcome -->
+  <div class="card">
+    <h2 class="welcomeTitle">👋 Welcome</h2>
+    <p class="welcomeText">
+      <p class="welcomeText">
+আপনাকে স্বাগতম আমাদের স্মার্ট আর্নিং প্ল্যাটফর্মে। এটি একটি আধুনিক ও বিশ্বস্ত অনলাইন আয়ের সিস্টেম, যেখানে আপনি সহজ কাজ করে বাস্তব টাকা উপার্জন করতে পারবেন। আমাদের প্ল্যাটফর্মটি এমনভাবে তৈরি করা হয়েছে যাতে যে কেউ খুব সহজেই ব্যবহার করতে পারে—আপনি নতুন হোন বা অভিজ্ঞ, এখানে সবার জন্য সমান সুযোগ রয়েছে।
+
+এই প্ল্যাটফর্মে আপনি মূলত বিজ্ঞাপন (Ads) দেখা, ছোট ছোট টাস্ক সম্পন্ন করা এবং অফারওয়াল ব্যবহার করার মাধ্যমে ইনকাম করতে পারবেন। প্রতিটি কাজ সম্পন্ন করার পর আপনার একাউন্টে রিয়েল ব্যালেন্স যোগ হবে, যা আপনি পরবর্তীতে সহজেই উত্তোলন (Withdraw) করতে পারবেন। আমরা উন্নত ট্র্যাকিং সিস্টেম ব্যবহার করি যাতে আপনার প্রতিটি কাজ সঠিকভাবে গণনা হয় এবং কোনো প্রকার ভুল বা প্রতারণা না ঘটে।
+
+আপনি যত বেশি সক্রিয় থাকবেন, তত বেশি আয় করার সুযোগ পাবেন। প্রতিদিন লগইন করে টাস্ক সম্পন্ন করুন, বিজ্ঞাপন দেখুন এবং অফারগুলো ব্যবহার করুন। এতে আপনার ব্যালেন্স ধীরে ধীরে বৃদ্ধি পাবে। এছাড়াও ভবিষ্যতে আমরা আরও নতুন নতুন ইনকাম অপশন যোগ করবো যাতে আপনি আরও দ্রুত আয় করতে পারেন।
+
+অনেক ব্যবহারকারী এই ধরনের প্ল্যাটফর্মে কাজ করে নিয়মিত ইনকাম করছেন। আপনিও যদি সঠিকভাবে নিয়ম মেনে কাজ করেন, তাহলে অল্প সময়ের মধ্যেই ভালো একটি আয়ের উৎস তৈরি করতে পারবেন। বিশেষ করে যারা মোবাইল দিয়ে কাজ করতে চান, তাদের জন্য এটি একটি সহজ এবং কার্যকর উপায়।
+
+দ্রুত আয় করার জন্য কিছু গুরুত্বপূর্ণ বিষয় মনে রাখুন: প্রতিদিন নিয়মিত লগইন করুন, সব টাস্ক সম্পন্ন করুন, বিজ্ঞাপন সম্পূর্ণভাবে দেখুন এবং কোনো ধরণের শর্টকাট বা ভুয়া পদ্ধতি ব্যবহার করবেন না। এতে আপনার একাউন্ট নিরাপদ থাকবে এবং আপনি নিরবচ্ছিন্নভাবে আয় করতে পারবেন।
+
+আমাদের লক্ষ্য হলো একটি নিরাপদ, স্বচ্ছ এবং ব্যবহারবান্ধব আর্নিং প্ল্যাটফর্ম তৈরি করা, যেখানে সবাই বিশ্বাসের সাথে কাজ করতে পারে। তাই আজই শুরু করুন, সক্রিয় থাকুন এবং ধাপে ধাপে আপনার আয় বৃদ্ধি করুন।
+</p>
   </div>
-</div>
 
-<div class="card">
-  <div class="big">🔥 Start Earning</div>
-  <div class="desc">
-    Choose any option below to start your earning journey.
+  <!-- grid -->
+  <div class="grid">
+    <a class="box" href="pages/task.html">📺 Task</a>
+    <a class="box" href="pages/offer.html">🎁 Offer</a>
+    <a class="box" href="pages/offer.html">🧩 Offerwall</a>
+    <a class="box" href="pages/extra.html">⚡ Extra</a>
   </div>
-</div>
 
-<!-- ================= FOOTER ================= -->
-<div class="footer">
-  <p>💡 Secure earning system with anti-cheat protection</p>
-
-  <div class="footer-links">
+  <!-- footer -->
+  <div class="footerText">
+    🔐 Secure earning system with anti-cheat protection  
+    <br>
     About | Contact | Privacy | Terms
   </div>
+
 </div>
 
-<div class="space"></div>
-
-<!-- ================= NAV ================= -->
+<!-- ===== NAV ===== -->
 <div class="nav">
-  <a href="pages/task.html"><span>📺</span>Task</a>
-  <a href="pages/offer.html"><span>🎁</span>Offer</a>
-  <a href="pages/offerwall.html"><span>🧩</span>Offerwall</a>
-  <a href="pages/extra.html"><span>⚡</span>Extra</a>
+  <a href="pages/task.html">📺<br>Task</a>
+  <a href="pages/offer.html">🎁<br>Offer</a>
+  <a href="pages/offer.html">🧩<br>Offerwall</a>
+  <a href="pages/extra.html">⚡<br>Extra</a>
 </div>
 
 <script>
 
-/* ================= MENU ================= */
-  function toggleMenu(){
-  const sidebar = document.getElementById("sidebar");
-  const overlay = document.getElementById("overlay");
-
-  sidebar.classList.toggle("active");
-  overlay.classList.toggle("active");
+/* ===== SIDEBAR ===== */
+function toggleMenu(){
+  document.getElementById("sidebar").classList.toggle("active");
+  document.getElementById("overlay").classList.toggle("active");
 }
 
-/* ================= USER ================= */
+/* ===== USER ===== */
 const userId = localStorage.getItem("userId") || Date.now();
 localStorage.setItem("userId", userId);
 
-/* ================= LOAD USER ================= */
+/* ===== LOAD BALANCE ===== */
 async function loadUser(){
   try{
     const res = await fetch("/api/user/" + userId);
     const data = await res.json();
-
     document.getElementById("balance").innerText = "৳ " + data.balance;
   }catch{
     console.log("error");
