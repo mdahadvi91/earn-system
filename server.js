@@ -326,6 +326,46 @@ app.get("/api/wannads-postback", async (req, res) => {
   }
 });
 
+// ================= DAILY BONUS =================
+/*
+  🔥 PURPOSE:
+  protidin ekbar bonus nite parbe
+*/
+
+app.post("/api/daily-bonus", async (req, res) => {
+  try {
+    const { userId } = req.body;
+
+    let user = await User.findOne({ userId });
+    if (!user) return res.status(404).json({ error: "User not found" });
+
+    const today = new Date().toDateString();
+
+    // 🚫 already claimed today
+    if (user.lastBonus === today) {
+      return res.status(400).json({ error: "Already claimed today" });
+    }
+
+    // 💰 bonus amount
+    const bonus = 1; // 1 BDT
+
+    user.balance += bonus;
+    user.lastBonus = today;
+
+    await user.save();
+
+    res.json({
+      success: true,
+      bonus,
+      balance: user.balance
+    });
+
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({ error: "Server error" });
+  }
+});
+
 // ================= DAILY RESET =================
 /*
   🔥 PURPOSE:
