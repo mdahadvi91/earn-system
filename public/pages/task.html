@@ -8,7 +8,7 @@
 
 <style>
 
-/* ================= BODY ================= */
+/* ===== BODY ===== */
 body{
   margin:0;
   background:#0a0a0a;
@@ -16,11 +16,10 @@ body{
   font-family:sans-serif;
 }
 
-/* ================= HEADER ================= */
+/* ===== HEADER ===== */
 .header{
   display:flex;
   justify-content:space-between;
-  align-items:center;
   padding:15px;
   background:#111;
 }
@@ -30,16 +29,15 @@ body{
   font-weight:bold;
 }
 
-/* ================= CARD ================= */
+/* ===== CARD ===== */
 .card{
   margin:15px;
   padding:20px;
   background:#111;
   border-radius:12px;
-  box-shadow:0 0 10px rgba(0,255,255,0.2);
 }
 
-/* ================= BUTTON ================= */
+/* ===== BUTTON ===== */
 button{
   width:100%;
   padding:12px;
@@ -47,12 +45,11 @@ button{
   border-radius:8px;
   background:#00ffff;
   color:black;
-  cursor:pointer;
   margin-top:10px;
   font-weight:bold;
 }
 
-/* ================= FOOTER NAV ================= */
+/* ===== FOOTER ===== */
 .footer{
   position:fixed;
   bottom:0;
@@ -60,236 +57,139 @@ button{
   background:#111;
   display:flex;
   justify-content:space-around;
-  padding:10px 0;
-  border-top:1px solid #222;
+  padding:10px;
 }
 
-.footer a{
-  color:white;
-  text-decoration:none;
-  font-size:12px;
-  text-align:center;
-}
-
-/* ================= SPACING ================= */
-.space{
-  height:80px;
-}
+.space{height:80px;}
 
 </style>
 </head>
 
 <body>
 
-<!-- ================= HEADER ================= -->
 <div class="header">
   <h3>📺 Task Earn</h3>
   <div class="balance" id="balance">৳ 0</div>
 </div>
 
-<!-- ================= TASK ================= -->
 <div class="card">
-
   <h4>🔥 Complete 5 Ads</h4>
-  <p>Watch ads & earn real money</p>
-
   <p id="progress">Progress: 0 / 5</p>
 
-  <button id="watchBtn" onclick="watchAd()">▶ Watch Ad</button>
-
-  <button onclick="claimReward()">💰 Claim Reward</button>
-
+  <button onclick="watchAd()">▶ Watch Ad</button>
+  <button id="claimBtn" onclick="claimReward()">💰 Claim Reward</button>
 </div>
 
 <div class="space"></div>
 
-<!-- ================= FOOTER ================= -->
 <div class="footer">
-  <a href="../index.html">🏠<br>Home</a>
-  <a href="task.html">📺<br>Task</a>
-  <a href="offer.html">🎁<br>Offer</a>
-  <a href="extra.html">💰<br>Extra</a>
+  <a href="../index.html">🏠</a>
+  <a href="task.html">📺</a>
 </div>
 
 <script>
 
-/*
-🔥 FULL INLINE SYSTEM
-NO EXTERNAL FILE
-NO ERROR
-*/
-
-// ================= USER =================
+// ===== USER =====
 const userId = localStorage.getItem("userId") || Date.now();
 localStorage.setItem("userId", userId);
 
 const deviceId = navigator.userAgent;
-
 let count = 0;
 
-// ================= LOAD USER =================
+// ===== LOAD USER =====
 async function loadUser(){
-  try{
-    const res = await fetch("/api/user/" + userId);
-    const data = await res.json();
+  const res = await fetch("/api/user/" + userId);
+  const data = await res.json();
 
-    document.getElementById("balance").innerText = "৳ " + data.balance;
+  document.getElementById("balance").innerText = "৳ " + data.balance;
 
-    count = data.totalAds % 5;
-    document.getElementById("progress").innerText =
-      "Progress: " + count + " / 5";
+  count = data.totalAds % 5;
 
-  }catch{
-    console.log("Load error");
-  }
+  document.getElementById("progress").innerText =
+    "Progress: " + count + " / 5";
+
+  updateClaimBtn(count);
 }
 loadUser();
 
-// ================= WATCH AD ================
+// ===== CLAIM BUTTON CONTROL =====
+function updateClaimBtn(count){
+  const btn = document.getElementById("claimBtn");
+
+  if(count < 5){
+    btn.disabled = true;
+    btn.style.opacity = 0.5;
+  }else{
+    btn.disabled = false;
+    btn.style.opacity = 1;
+  }
+}
+
+// ===== WATCH AD =====
 function watchAd(){
 
-  // 🔥 open ad
-  window.open(
-    "https://www.profitablecpmratenetwork.com/kxq650wd?key=11d1ec5f3d88b1d9689e0547e8b15dd1",
-    "_blank"
-  );
+  window.open("https://www.profitablecpmratenetwork.com/kxq650wd?key=11d1ec5f3d88b1d9689e0547e8b15dd1");
 
-  // 🔥 overlay create
-  const overlay = document.createElement("div");
-
-  overlay.style.position = "fixed";
-  overlay.style.top = 0;
-  overlay.style.left = 0;
-  overlay.style.width = "100%";
-  overlay.style.height = "100%";
-  overlay.style.background = "rgba(0,0,0,0.9)";
-  overlay.style.display = "flex";
-  overlay.style.flexDirection = "column";
-  overlay.style.alignItems = "center";
-  overlay.style.justifyContent = "center";
-  overlay.style.zIndex = 9999;
-  overlay.style.color = "white";
+  let overlay = document.createElement("div");
 
   overlay.innerHTML = `
     <h2>⏳ Watching Ad...</h2>
     <h1 id="timer">15</h1>
-    <p>Wait until timer ends</p>
-    <button id="closeBtn" style="display:none;padding:15px;margin-top:20px;">❌ Close & Earn</button>
+    <button id="closeBtn" style="display:none;">Close</button>
   `;
+
+  overlay.style = "position:fixed;top:0;left:0;width:100%;height:100%;background:black;display:flex;flex-direction:column;align-items:center;justify-content:center;";
 
   document.body.appendChild(overlay);
 
   let time = 15;
 
-  const timer = setInterval(()=>{
+  let t = setInterval(()=>{
     time--;
     document.getElementById("timer").innerText = time;
 
     if(time <= 0){
-      clearInterval(timer);
+      clearInterval(t);
       document.getElementById("closeBtn").style.display = "block";
     }
 
   },1000);
 
-  // 🔥 complete ad
-  document.getElementById("closeBtn").onclick = async () => {
+  document.getElementById("closeBtn").onclick = async ()=>{
 
-    try{
-      const res = await fetch("/api/watch-ad",{
-        method:"POST",
-        headers:{"Content-Type":"application/json"},
-        body:JSON.stringify({
-          userId: userId,
-          deviceId: deviceId
-        })
-      });
+    const res = await fetch("/api/watch-ad",{
+      method:"POST",
+      headers:{"Content-Type":"application/json"},
+      body:JSON.stringify({userId,deviceId})
+    });
 
-      const data = await res.json();
+    const data = await res.json();
 
-      if(data.success){
-
-        let count = data.totalAds % 5;
-
-        document.getElementById("progress").innerText =
-          "Progress: " + count + " / 5";
-
-        alert("✅ Ad Completed!");
-
-      }else{
-        alert(data.error || "Error");
-      }
-
-    }catch{
-      alert("Server error");
+    if(data.success){
+      alert("✅ Ad Done");
+      loadUser();
     }
 
     overlay.remove();
   };
-
 }
 
-// ================= COMPLETE =================
-async function completeAd(){
-
-  const btn = document.getElementById("watchBtn");
-  btn.innerText = "Loading...";
-
-  try{
-    const res = await fetch("/api/watch-ad",{
-      method:"POST",
-      headers:{"Content-Type":"application/json"},
-      body:JSON.stringify({userId, deviceId})
-    });
-
-    const data = await res.json();
-
-    if(data.success){
-
-      count = data.totalAds % 5;
-
-      document.getElementById("progress").innerText =
-        "Progress: " + count + " / 5";
-
-      btn.innerText = "▶ Watch Ad";
-      btn.onclick = watchAd;
-
-      if(count === 0){
-        alert("🎉 Task Complete! Claim now");
-      }
-
-    }else{
-      alert(data.error || "Error");
-    }
-
-  }catch{
-    alert("Server error");
-  }
-}
-
-// ================= CLAIM =================
+// ===== CLAIM =====
 async function claimReward(){
 
-  try{
-    const res = await fetch("/api/claim-task",{
-      method:"POST",
-      headers:{"Content-Type":"application/json"},
-      body:JSON.stringify({userId})
-    });
+  const res = await fetch("/api/claim-task",{
+    method:"POST",
+    headers:{"Content-Type":"application/json"},
+    body:JSON.stringify({userId})
+  });
 
-    const data = await res.json();
+  const data = await res.json();
 
-    if(data.success){
-      alert("💰 Earned: ৳ " + data.reward);
-
-      document.getElementById("balance").innerText =
-        "৳ " + data.balance;
-    }else{
-      alert(data.error);
-    }
-
-  }catch{
-    alert("Server error");
+  if(data.success){
+    alert("💰 Earned: ৳ " + data.reward);
+    loadUser();
+  }else{
+    alert(data.error);
   }
 }
 
