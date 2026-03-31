@@ -1,0 +1,52 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Invite</title>
+
+<style>
+body{background:#0a0a0a;color:white;font-family:sans-serif;}
+.box{margin:15px;padding:15px;background:#111;border-radius:10px;}
+button{padding:12px;background:#00ffff;border:none;width:100%;margin-top:10px;}
+</style>
+</head>
+
+<body>
+
+<div class="box">
+  <h3>👥 Invite & Earn</h3>
+
+  <!-- 🔥 referral link -->
+  <input id="refLink" style="width:100%;padding:10px">
+
+  <!-- 🔥 share button -->
+  <button onclick="shareLink()">📤 Share</button>
+
+  <p>💰 Per Referral: ৳ 5</p>
+</div>
+
+<script>
+
+const userId = localStorage.getItem("userId") || Date.now();
+localStorage.setItem("userId", userId);
+
+// create link
+const link = window.location.origin + "?ref=" + userId;
+document.getElementById("refLink").value = link;
+
+// share
+function shareLink(){
+  if(navigator.share){
+    navigator.share({
+      title:"Earn Money",
+      url:link
+    });
+  }else{
+    alert("Copy link manually");
+  }
+}
+
+</script>
+
+</body>
+</html>
