@@ -1,8 +1,8 @@
 // ================= CONFIG =================
-const MAX_ADS_PER_DAY = 50;
-const ADS_PER_TASK = 5;
-const REWARD_PER_TASK = 2;
-const AD_TIMER = 15000;
+const MAX_ADS_PER_DAY = 50;     // দিনে max ad
+const ADS_PER_TASK = 5;         // 5 ad = 1 task
+const REWARD_PER_TASK = 2;      // প্রতি task reward
+const AD_TIMER = 15000;         // 15 sec delay
 
 // ================= IMPORT =================
 const express = require("express");
@@ -20,9 +20,9 @@ process.on("unhandledRejection", err => console.log(err));
 app.use(cors());
 app.use(express.json());
 
-// ================= DB =================
+// ================= DB CONNECT =================
 mongoose.connect(process.env.MONGO_URI)
-.then(()=>console.log("DB Connected"))
+.then(()=>console.log("✅ DB Connected"))
 .catch(err=>console.log(err));
 
 // ================= MODELS =================
@@ -35,32 +35,26 @@ const User = mongoose.model("User", new mongoose.Schema({
   lastWatch:Number
 }));
 
-const EarnLog = mongoose.model("EarnLog", new mongoose.Schema({
-  userId:String,
-  amount:Number,
-  source:String,
-  time:{type:Date,default:Date.now}
-}));
-
 // ================= STATIC =================
 app.use(express.static(path.join(__dirname,"public")));
 
 // ================= ROUTES =================
 
-// home
+// Home
 app.get("/",(req,res)=>{
   res.sendFile(path.join(__dirname,"public/index.html"));
 });
 
-// task page fix
+// Task page
 app.get("/task",(req,res)=>{
   res.sendFile(path.join(__dirname,"public/pages/task.html"));
 });
 
-// health
+// Health check
 app.get("/health",(req,res)=>res.send("OK"));
 
 // ================= USER =================
+// user create / get
 app.get("/api/user/:id", async (req,res)=>{
   let user = await User.findOne({userId:req.params.id});
 
@@ -85,14 +79,17 @@ app.post("/api/watch-ad", async (req,res)=>{
 
     const now = Date.now();
 
+    // ⛔ fast click block
     if(user.lastWatch && now - user.lastWatch < AD_TIMER){
-      return res.status(400).json({error:"Too fast"});
+      return res.status(400).json({error:"Wait for timer"});
     }
 
+    // ⛔ daily limit
     if(user.totalAds >= MAX_ADS_PER_DAY){
-      return res.json({message:"Limit reached"});
+      return res.json({message:"Daily limit reached"});
     }
 
+    // ✅ update
     user.totalAds += 1;
     user.lastWatch = now;
     user.deviceId = deviceId;
@@ -116,16 +113,17 @@ app.post("/api/claim-task", async (req,res)=>{
     if(!user) return res.status(404).json({error:"User not found"});
 
     if(user.totalAds < ADS_PER_TASK){
-      return res.status(400).json({error:"Not enough ads"});
+      return res.status(400).json({error:"Watch 5 ads first"});
     }
 
-    const taskIndex = Math.floor(user.totalAds / ADS_PER_TASK);
+    // ✅ FIXED logic
+    const taskIndex = Math.floor((user.totalAds - 1) / ADS_PER_TASK);
 
     if(user.claimedTasks.includes(taskIndex)){
       return res.status(400).json({error:"Already claimed"});
     }
 
-    const reward = REWARD_PER_TASK * 0.6;
+    const reward = REWARD_PER_TASK;
 
     user.balance += reward;
     user.claimedTasks.push(taskIndex);
@@ -143,4 +141,4 @@ app.post("/api/claim-task", async (req,res)=>{
 // ================= SERVER =================
 const PORT = process.env.PORT || 10000;
 
-app.listen(PORT, ()=>console.log("Server running on",PORT));
+app.listen(PORT, ()=>console.log("🚀 Server running on",PORT));
