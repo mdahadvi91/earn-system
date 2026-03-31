@@ -258,43 +258,92 @@ button::after{
 
 <script>
 
+/* ===== SIDEBAR ===== */
 function toggleMenu(){
   document.getElementById("sidebar").classList.toggle("active");
   document.getElementById("overlay").classList.toggle("active");
 }
 
+/* ===== USER ===== */
 const userId = localStorage.getItem("userId") || Date.now();
 localStorage.setItem("userId", userId);
 
 const deviceId = navigator.userAgent;
 
-// ===== LOAD USER =====
+let adsWatched = 0;
+
+/* ===== LOAD USER ===== */
 async function loadUser(){
   const res = await fetch("/api/user/" + userId);
   const data = await res.json();
 
   document.getElementById("balance").innerText = "৳ " + data.balance;
 
-  let count = data.totalAds % 5;
-  document.getElementById("progress").innerText = "Progress: " + count + " / 5";
+  adsWatched = data.totalAds % 5;
 
-  document.getElementById("claimBtn").disabled = count !== 0 || data.totalAds < 5;
+  document.getElementById("progress").innerText =
+    "Progress: " + adsWatched + " / 5";
+
+  updateClaimBtn();
 }
 loadUser();
 
-// ===== WATCH AD =====
+/* ===== CLAIM BUTTON ===== */
+function updateClaimBtn(){
+  const btn = document.getElementById("claimBtn");
+
+  if(adsWatched === 0 && localStorage.getItem("readyClaim") === "true"){
+    btn.disabled = false;
+    btn.style.opacity = 1;
+  }else{
+    btn.disabled = true;
+    btn.style.opacity = 0.5;
+  }
+}
+
+/* ===== WATCH AD ===== */
 function watchAd(){
 
   window.open("https://www.profitablecpmratenetwork.com/kxq650wd?key=11d1ec5f3d88b1d9689e0547e8b15dd1");
 
   let overlay = document.createElement("div");
 
-  overlay.innerHTML = `<h2>⏳ 15 sec wait...</h2>`;
-  overlay.style = "position:fixed;top:0;left:0;width:100%;height:100%;background:black;display:flex;align-items:center;justify-content:center;";
+  overlay.innerHTML = `
+    <h2>⏳ Watching Ad...</h2>
+    <h1 id="timer">15</h1>
+    <button id="closeBtn" style="display:none;">❌ Close & Earn</button>
+  `;
+
+  overlay.style = `
+    position:fixed;
+    top:0;
+    left:0;
+    width:100%;
+    height:100%;
+    background:black;
+    display:flex;
+    flex-direction:column;
+    align-items:center;
+    justify-content:center;
+    color:white;
+  `;
 
   document.body.appendChild(overlay);
 
-  setTimeout(async ()=>{
+  let time = 15;
+
+  let t = setInterval(()=>{
+    time--;
+    document.getElementById("timer").innerText = time;
+
+    if(time <= 0){
+      clearInterval(t);
+      document.getElementById("closeBtn").style.display = "block";
+    }
+
+  },1000);
+
+  document.getElementById("closeBtn").onclick = async ()=>{
 
     const res = await fetch("/api/watch-ad",{
       method:"POST",
@@ -305,16 +354,32 @@ function watchAd(){
     const data = await res.json();
 
     if(data.success){
-      loadUser();
+
+      adsWatched++;
+
+      if(adsWatched === 5){
+        localStorage.setItem("readyClaim","true");
+        adsWatched = 0;
+      }
+
+      document.getElementById("progress").innerText =
+        "Progress: " + adsWatched + " / 5";
+
+      updateClaimBtn();
+
     }
 
     overlay.remove();
-
-  },15000);
+  };
 }
 
-// ===== CLAIM FIX =====
+/* ===== CLAIM ===== */
 async function claimReward(){
+
+  if(localStorage.getItem("readyClaim") !== "true"){
+    alert("❌ Complete 5 ads first");
+    return;
+  }
 
   const res = await fetch("/api/claim-task",{
     method:"POST",
@@ -325,8 +390,16 @@ async function claimReward(){
   const data = await res.json();
 
   if(data.success){
+
     alert("💰 Earned: ৳ " + data.reward);
-    loadUser();
+
+    localStorage.removeItem("readyClaim");
+
+    document.getElementById("balance").innerText =
+      "৳ " + data.balance;
+
+    updateClaimBtn();
+
   }else{
     alert(data.error);
   }
