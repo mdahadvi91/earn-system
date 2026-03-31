@@ -366,6 +366,90 @@ app.post("/api/daily-bonus", async (req, res) => {
   }
 });
 
+// ================= INVITE SYSTEM =================
+/*
+  🔥 PURPOSE:
+  referral join korle reward add
+*/
+
+app.post("/api/invite", async (req, res) => {
+  try {
+    const { userId, refBy } = req.body;
+
+    let user = await User.findOne({ userId });
+
+    if (!user) {
+      user = await User.create({ userId, refBy });
+
+      // 💰 referral reward
+      if (refBy) {
+        let refUser = await User.findOne({ userId: refBy });
+
+        if (refUser) {
+          const reward = 5; // 5 BDT per referral
+
+          refUser.balance += reward;
+          await refUser.save();
+        }
+      }
+    }
+
+    res.json({ success: true });
+
+  } catch (err) {
+    res.status(500).json({ error: "Server error" });
+  }
+});
+
+// ================= WITHDRAW =================
+/*
+  🔥 PURPOSE:
+  user withdraw request save (admin manual pay korbe)
+*/
+
+const Withdraw = mongoose.model("Withdraw", new mongoose.Schema({
+  userId: String,
+  method: String,
+  account: String,
+  amount: Number,
+  status: { type: String, default: "pending" },
+  time: { type: Date, default: Date.now }
+}));
+
+app.post("/api/withdraw", async (req, res) => {
+  try {
+    const { userId, method, account, amount } = req.body;
+
+    let user = await User.findOne({ userId });
+
+    if (!user) return res.status(404).json({ error: "User not found" });
+
+    // 🚫 balance check
+    if (user.balance < amount) {
+      return res.status(400).json({ error: "Insufficient balance" });
+    }
+
+    // 💰 deduct
+    user.balance -= amount;
+    await user.save();
+
+    // save request
+    await Withdraw.create({
+      userId,
+      method,
+      account,
+      amount
+    });
+
+    console.log("📩 New Withdraw Request:", userId, amount);
+
+    res.json({ success: true });
+
+  } catch (err) {
+    res.status(500).json({ error: "Server error" });
+  }
+});
+
 // ================= DAILY RESET =================
 /*
   🔥 PURPOSE:
