@@ -234,6 +234,54 @@ app.post("/api/claim-task", async (req, res) => {
   }
 });
 
+// ================= CPA POSTBACK =================
+/*
+  🔥 PURPOSE:
+  CPAGrip theke real conversion asle user ke reward add
+*/
+
+app.get("/api/postback", async (req, res) => {
+  try {
+    const { user_id, amount, trans_id } = req.query;
+
+    // 🚫 missing data check
+    if (!user_id || !amount || !trans_id) {
+      return res.send("Invalid");
+    }
+
+    let user = await User.findOne({ userId: user_id });
+
+    if (!user) return res.send("No user");
+
+    // ================= FAKE PREVENT =================
+    /*
+      🔥 PURPOSE:
+      same transaction duplicate add na hoy
+    */
+    const exist = await EarnLog.findOne({ source: trans_id });
+    if (exist) return res.send("Duplicate");
+
+    // ================= REAL EARNING =================
+    const reward = Number(amount) * 0.6; // 60% user
+
+    user.balance += reward;
+
+    await user.save();
+
+    await EarnLog.create({
+      userId: user_id,
+      amount: reward,
+      source: trans_id
+    });
+
+    res.send("OK");
+
+  } catch (err) {
+    console.error(err);
+    res.send("Error");
+  }
+});
+
 // ================= DAILY RESET =================
 /*
   🔥 PURPOSE:
