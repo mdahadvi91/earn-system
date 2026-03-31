@@ -97,6 +97,10 @@ app.get("/api/user/:id", async (req, res) => {
 });
 
 // ================= WATCH AD =================
+// ================= FIX =================
+if (!req.body.userId || !req.body.deviceId) {
+  return res.status(400).json({ error: "Missing userId or deviceId" });
+}
 app.post("/api/watch-ad", async (req, res) => {
   try {
     const { userId, deviceId } = req.body;
