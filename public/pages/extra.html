@@ -1,0 +1,124 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+<title>Extra Earning</title>
+
+<style>
+
+/* 🔥 BASIC UI */
+body{
+  background:#0a0a0a;
+  color:white;
+  font-family:sans-serif;
+}
+
+.header{
+  display:flex;
+  justify-content:space-between;
+  padding:15px;
+}
+
+.balance{
+  color:#00ffcc;
+}
+
+.card{
+  margin:15px;
+  padding:15px;
+  background:#111;
+  border-radius:10px;
+}
+
+button{
+  padding:12px;
+  margin-top:10px;
+  border:none;
+  background:#00ffff;
+  color:black;
+  border-radius:8px;
+  cursor:pointer;
+}
+
+iframe{
+  width:100%;
+  height:60vh;
+  border:none;
+  margin-top:10px;
+}
+
+</style>
+</head>
+
+<body>
+
+<!-- ================= HEADER ================= -->
+<div class="header">
+  <h3>⚡ Extra Earning</h3>
+  <div class="balance">৳ 0.00</div>
+</div>
+
+<!-- ================= DAILY BONUS ================= -->
+<div class="card">
+
+  <!-- 🔥 PURPOSE: daily reward -->
+  <h4>🎁 Daily Bonus</h4>
+  <p>Claim your daily reward once every day</p>
+
+  <button onclick="claimBonus()">💰 Claim Bonus</button>
+
+</div>
+
+<!-- ================= WANNAADS TASK ================= -->
+<div class="card">
+
+  <!-- 🔥 PURPOSE: extra task earning -->
+  <h4>🔥 Extra Tasks</h4>
+  <p>Complete tasks & surveys to earn more</p>
+
+  <iframe id="wannadsFrame"></iframe>
+
+</div>
+
+<script>
+
+/*
+🔥 PURPOSE:
+user tracking + API connect
+*/
+
+const userId = localStorage.getItem("userId") || Date.now();
+localStorage.setItem("userId", userId);
+
+/* ================= DAILY BONUS ================= */
+async function claimBonus(){
+
+  const res = await fetch("/api/daily-bonus",{
+    method:"POST",
+    headers:{"Content-Type":"application/json"},
+    body:JSON.stringify({userId})
+  });
+
+  const data = await res.json();
+
+  if(data.success){
+    alert("🎉 Bonus: ৳ " + data.bonus);
+    document.querySelector(".balance").innerText =
+      "৳ " + data.balance;
+  }else{
+    alert(data.error);
+  }
+}
+
+/* ================= WANNAADS ================= */
+const baseURL = "https://earn.wannads.com/wall?apiKey=69cb21e8f1864612079491&userId=";
+
+document.getElementById("wannadsFrame").src =
+  baseURL + userId;
+
+</script>
+
+</body>
+</html>
