@@ -1,14 +1,8 @@
 // ================= TASK CONFIG =================
-/*
-  🔥 PURPOSE:
-  Task system rules define kora
-*/
-
-const MAX_ADS_PER_DAY = 50;   // daily limit
-const ADS_PER_TASK = 5;       // 5 ads = 1 task
-const REWARD_PER_TASK = 2;    // 2 BDT per task
-const AD_TIMER = 15000;       // 15 sec
-
+const MAX_ADS_PER_DAY = 50;
+const ADS_PER_TASK = 5;
+const REWARD_PER_TASK = 2;
+const AD_TIMER = 15000;
 
 // ================= IMPORT =================
 const express = require("express");
@@ -20,10 +14,6 @@ const mongoose = require("mongoose");
 const app = express();
 
 // ================= GLOBAL SAFETY =================
-/*
-  🔥 PURPOSE:
-  Server crash prevent korar jonno global error handler
-*/
 process.on("uncaughtException", (err) => {
   console.error("❌ Uncaught Exception:", err);
 });
@@ -37,10 +27,6 @@ app.use(cors());
 app.use(express.json());
 
 // ================= DATABASE =================
-/*
-  🔥 PURPOSE:
-  MongoDB stable connection (auto reconnect)
-*/
 mongoose.connect(process.env.MONGO_URI, {
   useNewUrlParser: true,
   useUnifiedTopology: true,
@@ -48,9 +34,8 @@ mongoose.connect(process.env.MONGO_URI, {
 .then(() => console.log("✅ MongoDB Connected"))
 .catch(err => console.log("❌ DB Error:", err));
 
-// auto reconnect log
 mongoose.connection.on("disconnected", () => {
-  console.log("⚠️ MongoDB Disconnected... reconnecting");
+  console.log("⚠️ MongoDB Disconnected...");
 });
 
 mongoose.connection.on("reconnected", () => {
@@ -64,15 +49,20 @@ const User = mongoose.model("User", new mongoose.Schema({
   totalAds: { type: Number, default: 0 },
   claimedTasks: { type: Array, default: [] },
   refBy: String,
-
   ip: String,
   deviceId: String,
   lastWatch: Number,
-
   suspicious: { type: Number, default: 0 },
   blocked: { type: Boolean, default: false },
-
   lastBonus: String
+}));
+
+// ✅ NEW (EarnLog add)
+const EarnLog = mongoose.model("EarnLog", new mongoose.Schema({
+  userId: String,
+  amount: Number,
+  source: String,
+  time: { type: Date, default: Date.now }
 }));
 
 // ================= STATIC =================
@@ -82,16 +72,12 @@ app.get("/", (req, res) => {
   res.sendFile(path.join(__dirname, "public/index.html"));
 });
 
-// ================= HEALTH CHECK =================
-/*
-  🔥 PURPOSE:
-  uptime monitor ping korbe (sleep prevent)
-*/
+// ================= HEALTH =================
 app.get("/health", (req, res) => {
-  res.status(200).send("OK");
+  res.send("OK");
 });
 
-// ================= USER API =================
+// ================= USER =================
 app.get("/api/user/:id", async (req, res) => {
   try {
     let user = await User.findOne({ userId: req.params.id });
@@ -105,116 +91,68 @@ app.get("/api/user/:id", async (req, res) => {
 
     res.json(user);
 
-  } catch (err) {
-    console.error(err);
+  } catch {
     res.status(500).json({ error: "Server Error" });
   }
 });
 
-// ================= KEEP ALIVE SYSTEM =================
-/*
-  🔥 PURPOSE:
-  server sleep prevent (self ping)
-*/
-setInterval(() => {
-  console.log("🔁 Keep Alive Ping");
-}, 1000 * 60 * 5); // every 5 min
-
-// ================= SERVER START =================
-const PORT = process.env.PORT || 3000;
-
-app.listen(PORT, () => {
-  console.log(`🚀 Server Running on Port ${PORT}`);
-});
-
 // ================= WATCH AD =================
-/*
-  🔥 PURPOSE:
-  Ad watch track + anti-cheat check
-*/
-
 app.post("/api/watch-ad", async (req, res) => {
   try {
     const { userId, deviceId } = req.body;
     const ip = req.ip;
 
     let user = await User.findOne({ userId });
-
     if (!user) return res.status(404).json({ error: "User not found" });
 
-    // 🚫 blocked user
-    if (user.blocked) {
-      return res.status(403).json({ error: "User blocked" });
-    }
+    if (user.blocked) return res.status(403).json({ error: "Blocked" });
 
-    // 🔐 device mismatch check
     if (user.deviceId && user.deviceId !== deviceId) {
       user.suspicious += 1;
     }
 
-    // first time save device
-    if (!user.deviceId) {
-      user.deviceId = deviceId;
-    }
+    if (!user.deviceId) user.deviceId = deviceId;
 
-    // ⏱️ timer check (anti fast click)
     const now = Date.now();
     if (user.lastWatch && now - user.lastWatch < AD_TIMER) {
-      user.suspicious += 1;
-      await user.save();
       return res.status(400).json({ error: "Too fast" });
     }
 
-    // 📊 daily limit check
     if (user.totalAds >= MAX_ADS_PER_DAY) {
-      return res.json({ message: "Daily limit reached" });
+      return res.json({ message: "Limit reached" });
     }
 
-    // update
     user.totalAds += 1;
     user.lastWatch = now;
     user.ip = ip;
 
     await user.save();
 
-    res.json({
-      success: true,
-      totalAds: user.totalAds
-    });
+    res.json({ success: true, totalAds: user.totalAds });
 
-  } catch (err) {
-    console.error(err);
+  } catch {
     res.status(500).json({ error: "Server error" });
   }
 });
 
-// ================= CLAIM TASK =================
-/*
-  🔥 PURPOSE:
-  5 ads complete hole reward add kora
-*/
-
+// ================= CLAIM =================
 app.post("/api/claim-task", async (req, res) => {
   try {
     const { userId } = req.body;
-
     let user = await User.findOne({ userId });
 
     if (!user) return res.status(404).json({ error: "User not found" });
 
-    // check ads
     if (user.totalAds < ADS_PER_TASK) {
       return res.status(400).json({ error: "Not enough ads" });
     }
 
-    // prevent duplicate claim
     const taskIndex = Math.floor(user.totalAds / ADS_PER_TASK);
 
     if (user.claimedTasks.includes(taskIndex)) {
       return res.status(400).json({ error: "Already claimed" });
     }
 
-    // 💰 reward calculation (60%)
     const reward = REWARD_PER_TASK * 0.6;
 
     user.balance += reward;
@@ -222,94 +160,29 @@ app.post("/api/claim-task", async (req, res) => {
 
     await user.save();
 
-    res.json({
-      success: true,
-      reward,
-      balance: user.balance
-    });
+    res.json({ success: true, reward, balance: user.balance });
 
-  } catch (err) {
-    console.error(err);
+  } catch {
     res.status(500).json({ error: "Server error" });
   }
 });
 
 // ================= CPA POSTBACK =================
-/*
-  🔥 PURPOSE:
-  CPAGrip theke real conversion asle user ke reward add
-*/
-
 app.get("/api/postback", async (req, res) => {
   try {
     const { user_id, amount, trans_id } = req.query;
 
-    // 🚫 missing data check
-    if (!user_id || !amount || !trans_id) {
-      return res.send("Invalid");
-    }
+    if (!user_id || !amount || !trans_id) return res.send("Invalid");
 
     let user = await User.findOne({ userId: user_id });
-
     if (!user) return res.send("No user");
 
-    // ================= WANNAADS POSTBACK =================
-/*
-  🔥 PURPOSE:
-  WannaAds theke real earning verify kore balance add
-*/
-
-app.get("/api/wannads-postback", async (req, res) => {
-  try {
-    const { userId, reward, trans_id } = req.query;
-
-    // 🚫 check missing data
-    if (!userId || !reward || !trans_id) {
-      return res.send("Invalid");
-    }
-
-    let user = await User.findOne({ userId });
-
-    if (!user) return res.send("No user");
-
-    // ================= DUPLICATE BLOCK =================
     const exist = await EarnLog.findOne({ source: trans_id });
     if (exist) return res.send("Duplicate");
 
-    // ================= REAL EARNING =================
-    const amount = Number(reward) * 0.6; // 60% user
-
-    user.balance += amount;
-
-    await user.save();
-
-    await EarnLog.create({
-      userId,
-      amount,
-      source: trans_id
-    });
-
-    res.send("OK");
-
-  } catch (err) {
-    console.error(err);
-    res.send("Error");
-  }
-});
-
-    // ================= FAKE PREVENT =================
-    /*
-      🔥 PURPOSE:
-      same transaction duplicate add na hoy
-    */
-    const exist = await EarnLog.findOne({ source: trans_id });
-    if (exist) return res.send("Duplicate");
-
-    // ================= REAL EARNING =================
-    const reward = Number(amount) * 0.6; // 60% user
+    const reward = Number(amount) * 0.6;
 
     user.balance += reward;
-
     await user.save();
 
     await EarnLog.create({
@@ -320,192 +193,45 @@ app.get("/api/wannads-postback", async (req, res) => {
 
     res.send("OK");
 
-  } catch (err) {
-    console.error(err);
+  } catch {
     res.send("Error");
   }
 });
 
-// ================= ADMIN CONFIG =================
-/*
-  🔥 PURPOSE:
-  admin security
-*/
-
-const ADMIN_PASSWORD = "Hridoyvi@24423"; // 🔥 change korba
-
-
-// ================= ADMIN LOGIN =================
-app.post("/api/admin/login", (req, res) => {
-  const { password } = req.body;
-
-  if (password === ADMIN_PASSWORD) {
-    return res.json({ success: true });
-  } else {
-    return res.status(401).json({ error: "Wrong password" });
-  }
-});
-
-// ================= GET USERS =================
-app.get("/api/admin/users", async (req, res) => {
-  const users = await User.find().limit(100);
-  res.json(users);
-});
-
-// ================= GET WITHDRAW =================
-app.get("/api/admin/withdraws", async (req, res) => {
-  const data = await Withdraw.find().sort({ time: -1 });
-  res.json(data);
-});
-
-
-// ================= APPROVE =================
-app.post("/api/admin/approve", async (req, res) => {
-  const { id } = req.body;
-
-  await Withdraw.findByIdAndUpdate(id, {
-    status: "approved"
-  });
-
-  res.json({ success: true });
-});
-
-// ================= DAILY BONUS =================
-/*
-  🔥 PURPOSE:
-  protidin ekbar bonus nite parbe
-*/
-
-app.post("/api/daily-bonus", async (req, res) => {
+// ================= ✅ WANNAADS (FIXED SEPARATE) =================
+app.get("/api/wannads-postback", async (req, res) => {
   try {
-    const { userId } = req.body;
+    const { userId, reward, trans_id } = req.query;
+
+    if (!userId || !reward || !trans_id) return res.send("Invalid");
 
     let user = await User.findOne({ userId });
-    if (!user) return res.status(404).json({ error: "User not found" });
+    if (!user) return res.send("No user");
 
-    const today = new Date().toDateString();
+    const exist = await EarnLog.findOne({ source: trans_id });
+    if (exist) return res.send("Duplicate");
 
-    // 🚫 already claimed today
-    if (user.lastBonus === today) {
-      return res.status(400).json({ error: "Already claimed today" });
-    }
+    const amount = Number(reward) * 0.6;
 
-    // 💰 bonus amount
-    const bonus = 1; // 1 BDT
-
-    user.balance += bonus;
-    user.lastBonus = today;
-
+    user.balance += amount;
     await user.save();
 
-    res.json({
-      success: true,
-      bonus,
-      balance: user.balance
-    });
-
-  } catch (err) {
-    console.error(err);
-    res.status(500).json({ error: "Server error" });
-  }
-});
-
-// ================= INVITE SYSTEM =================
-/*
-  🔥 PURPOSE:
-  referral join korle reward add
-*/
-
-app.post("/api/invite", async (req, res) => {
-  try {
-    const { userId, refBy } = req.body;
-
-    let user = await User.findOne({ userId });
-
-    if (!user) {
-      user = await User.create({ userId, refBy });
-
-      // 💰 referral reward
-      if (refBy) {
-        let refUser = await User.findOne({ userId: refBy });
-
-        if (refUser) {
-          const reward = 5; // 5 BDT per referral
-
-          refUser.balance += reward;
-          await refUser.save();
-        }
-      }
-    }
-
-    res.json({ success: true });
-
-  } catch (err) {
-    res.status(500).json({ error: "Server error" });
-  }
-});
-
-// ================= WITHDRAW =================
-/*
-  🔥 PURPOSE:
-  user withdraw request save (admin manual pay korbe)
-*/
-
-const Withdraw = mongoose.model("Withdraw", new mongoose.Schema({
-  userId: String,
-  method: String,
-  account: String,
-  amount: Number,
-  status: { type: String, default: "pending" },
-  time: { type: Date, default: Date.now }
-}));
-
-app.post("/api/withdraw", async (req, res) => {
-  try {
-    const { userId, method, account, amount } = req.body;
-
-    let user = await User.findOne({ userId });
-
-    if (!user) return res.status(404).json({ error: "User not found" });
-
-    // 🚫 balance check
-    if (user.balance < amount) {
-      return res.status(400).json({ error: "Insufficient balance" });
-    }
-
-    // 💰 deduct
-    user.balance -= amount;
-    await user.save();
-
-    // save request
-    await Withdraw.create({
+    await EarnLog.create({
       userId,
-      method,
-      account,
-      amount
+      amount,
+      source: trans_id
     });
 
-    console.log("📩 New Withdraw Request:", userId, amount);
+    res.send("OK");
 
-    res.json({ success: true });
-
-  } catch (err) {
-    res.status(500).json({ error: "Server error" });
+  } catch {
+    res.send("Error");
   }
 });
 
-// ================= DAILY RESET =================
-/*
-  🔥 PURPOSE:
-  protidin ads count reset
-*/
+// ================= SERVER =================
+const PORT = process.env.PORT || 3000;
 
-setInterval(async () => {
-  console.log("🔄 Daily reset running...");
-
-  await User.updateMany({}, {
-    totalAds: 0,
-    claimedTasks: []
-  });
-
-}, 1000 * 60 * 60 * 24); // 24 hour
+app.listen(PORT, () => {
+  console.log("🚀 Server Running:", PORT);
+});
