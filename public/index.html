@@ -1,224 +1,238 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
 
-  <title>Earn Money Dashboard</title>
+<title>Earn Dashboard</title>
 
-  <!-- ================= STYLE ================= -->
-  <style>
+<style>
 
-    /* 🔥 RESET */
-    *{
-      margin:0;
-      padding:0;
-      box-sizing:border-box;
-      font-family: 'Segoe UI', sans-serif;
-    }
+/* ================= BODY ================= */
+body{
+  margin:0;
+  font-family:sans-serif;
+  color:white;
+  overflow-x:hidden;
+}
 
-    body{
-      background:#0a0a0a;
-      color:white;
-      overflow-x:hidden;
-    }
+/* ================= ANIMATED BG ================= */
+body::before{
+  content:"";
+  position:fixed;
+  width:100%;
+  height:100%;
+  background:linear-gradient(270deg,#00c6ff,#0072ff,#00ffcc);
+  background-size:600% 600%;
+  animation:bg 12s ease infinite;
+  z-index:-1;
+}
 
-    /* ================= NEON SMOKE BG ================= */
-    body::before{
-      content:"";
-      position:fixed;
-      width:200%;
-      height:200%;
-      background: radial-gradient(circle at 30% 30%, #00f0ff, transparent),
-                  radial-gradient(circle at 70% 60%, #ff00ff, transparent),
-                  radial-gradient(circle at 50% 80%, #00ff88, transparent);
-      animation: smoke 15s infinite linear;
-      z-index:-1;
-      filter: blur(120px);
-    }
+@keyframes bg{
+  0%{background-position:0% 50%;}
+  50%{background-position:100% 50%;}
+  100%{background-position:0% 50%;}
+}
 
-    @keyframes smoke{
-      0%{transform:translate(0,0);}
-      50%{transform:translate(-20%, -10%);}
-      100%{transform:translate(0,0);}
-    }
+/* ================= HEADER ================= */
+.header{
+  display:flex;
+  justify-content:space-between;
+  align-items:center;
+  padding:15px;
+  background:rgba(0,0,0,0.6);
+  backdrop-filter:blur(10px);
+  position:sticky;
+  top:0;
+  z-index:1000;
+}
 
-    /* ================= HEADER ================= */
-    .header{
-      padding:15px;
-      display:flex;
-      justify-content:space-between;
-      align-items:center;
-      backdrop-filter: blur(10px);
-    }
+/* menu icon */
+.menu{
+  font-size:26px;
+  cursor:pointer;
+}
 
-    .menu-btn{
-      font-size:22px;
-      cursor:pointer;
-    }
+/* title */
+.title{
+  font-size:22px;
+  font-weight:bold;
+}
 
-    .balance{
-      font-size:18px;
-      font-weight:bold;
-      color:#00ffcc;
-    }
+/* balance */
+.balance{
+  font-size:20px;
+  color:#00ffcc;
+  font-weight:bold;
+}
 
-    /* ================= WELCOME ================= */
-    .welcome{
-      padding:20px;
-      font-size:14px;
-      line-height:1.6;
-      opacity:0.9;
-    }
+/* ================= SIDEBAR ================= */
+.sidebar{
+  position:fixed;
+  top:0;
+  left:-260px;
+  width:260px;
+  height:100%;
+  background:#111;
+  padding:20px;
+  transition:0.3s;
+  z-index:2000;
+}
 
-    /* ================= CARD ================= */
-    .card{
-      margin:15px;
-      padding:20px;
-      border-radius:15px;
-      background:rgba(255,255,255,0.05);
-      backdrop-filter: blur(10px);
-      box-shadow:0 0 20px rgba(0,255,255,0.2);
-    }
+.sidebar.active{
+  left:0;
+}
 
-    /* ================= FOOTER ================= */
-    .footer{
-      text-align:center;
-      padding:20px;
-      font-size:12px;
-      opacity:0.7;
-    }
+.sidebar a{
+  display:block;
+  color:white;
+  padding:12px 0;
+  text-decoration:none;
+  border-bottom:1px solid #222;
+}
 
-    .footer a{
-      color:#00ffff;
-      margin:0 8px;
-      text-decoration:none;
-    }
+/* ================= CARD ================= */
+.card{
+  margin:20px;
+  padding:20px;
+  border-radius:15px;
+  background:rgba(0,0,0,0.6);
+  backdrop-filter:blur(10px);
+}
 
-    /* ================= BOTTOM NAV ================= */
-    .nav{
-      position:fixed;
-      bottom:0;
-      width:100%;
-      display:flex;
-      justify-content:space-around;
-      background:#111;
-      padding:10px 0;
-      border-top:1px solid #333;
-    }
+/* title */
+.big{
+  font-size:22px;
+  font-weight:bold;
+}
 
-    .nav a{
-      text-align:center;
-      color:white;
-      text-decoration:none;
-      font-size:12px;
-    }
+/* desc */
+.desc{
+  font-size:16px;
+  margin-top:10px;
+  color:#ddd;
+}
 
-    .nav a:hover{
-      color:#00ffff;
-    }
+/* ================= FOOTER ================= */
+.footer{
+  margin-top:30px;
+  text-align:center;
+  font-size:14px;
+  color:#ddd;
+}
 
-    /* ================= SIDEBAR ================= */
-    .sidebar{
-      position:fixed;
-      top:0;
-      left:-250px;
-      width:250px;
-      height:100%;
-      background:#111;
-      padding:20px;
-      transition:0.3s;
-    }
+.footer-links{
+  margin-top:10px;
+}
 
-    .sidebar.active{
-      left:0;
-    }
+/* ================= NAV BAR ================= */
+.nav{
+  position:fixed;
+  bottom:0;
+  width:100%;
+  background:#111;
+  display:flex;
+  justify-content:space-around;
+  padding:12px 0;
+  border-top:1px solid #222;
+}
 
-    .sidebar a{
-      display:block;
-      color:white;
-      margin:15px 0;
-      text-decoration:none;
-    }
+.nav a{
+  text-align:center;
+  color:white;
+  text-decoration:none;
+  font-size:14px;
+}
 
-  </style>
+.nav span{
+  font-size:20px;
+  display:block;
+}
+
+/* spacing */
+.space{
+  height:90px;
+}
+
+</style>
 </head>
 
 <body>
 
 <!-- ================= SIDEBAR ================= -->
 <div class="sidebar" id="sidebar">
-  <!-- 🔥 PURPOSE: menu navigation -->
-  <a href="pages/invite.html">👥 Invite & Earn</a>
-  <a href="pages/withdraw.html">💸 Withdraw</a>
+  <h3>⚙️ Menu</h3>
+  <a href="#">Dashboard</a>
+  <a href="#">Withdraw</a>
+  <a href="#">History</a>
+  <a href="#">Settings</a>
 </div>
 
 <!-- ================= HEADER ================= -->
 <div class="header">
-  <div class="menu-btn" onclick="toggleMenu()">☰</div>
-
-  <!-- 🔥 PURPOSE: real user balance show -->
-  <div class="balance">৳ 0.00</div>
+  <div class="menu" onclick="toggleMenu()">☰</div>
+  <div class="title">Earn Dashboard</div>
+  <div class="balance" id="balance">৳ 0</div>
 </div>
 
-<!-- ================= WELCOME TEXT ================= -->
-<div class="welcome">
-  🎉 Welcome to our real earning platform!  
-  Here you can earn real money by completing tasks, watching ads, and using offerwalls.  
-  💰 All earnings are real and based on verified actions only.  
-  🚀 Start exploring the earning options below and grow your balance daily.  
-  🔒 We use secure tracking systems to prevent fraud and ensure fairness.  
-  Invite your friends and boost your income even more! 💸
-</div>
-
-<!-- ================= MAIN CARD ================= -->
+<!-- ================= MAIN ================= -->
 <div class="card">
-  <h3>🔥 Start Earning</h3>
-  <p>Select any option below to begin your earning journey.</p>
+  <div class="big">💸 Withdraw</div>
+  <div class="desc">
+    Welcome to our real earning platform! Earn money by completing tasks, watching ads & offerwalls. 🚀
+  </div>
+</div>
+
+<div class="card">
+  <div class="big">🔥 Start Earning</div>
+  <div class="desc">
+    Choose any option below to start your earning journey.
+  </div>
 </div>
 
 <!-- ================= FOOTER ================= -->
 <div class="footer">
-  <!-- 🔥 PURPOSE: legal & info links -->
-  <a href="#">About</a> |
-  <a href="#">Contact</a> |
-  <a href="#">Privacy</a> |
-  <a href="#">Terms</a>
+  <p>💡 Secure earning system with anti-cheat protection</p>
+
+  <div class="footer-links">
+    About | Contact | Privacy | Terms
+  </div>
 </div>
 
-<!-- ================= BOTTOM NAV ================= -->
+<div class="space"></div>
+
+<!-- ================= NAV ================= -->
 <div class="nav">
-
-  <!-- 🔥 PURPOSE: 4 earning sections -->
-
-  <a href="pages/task.html">
-    📺<br>Task
-  </a>
-
-  <a href="pages/offer.html">
-    🎯<br>Offer
-  </a>
-
-  <a href="pages/offerwall.html">
-    📱<br>Offerwall
-  </a>
-
-  <a href="pages/extra.html">
-    ⚡<br>Extra
-  </a>
-
+  <a href="pages/task.html"><span>📺</span>Task</a>
+  <a href="pages/offer.html"><span>🎁</span>Offer</a>
+  <a href="pages/offerwall.html"><span>🧩</span>Offerwall</a>
+  <a href="pages/extra.html"><span>⚡</span>Extra</a>
 </div>
 
-<!-- ================= SCRIPT ================= -->
 <script>
 
-/* 🔥 PURPOSE: sidebar toggle */
+/* ================= MENU ================= */
 function toggleMenu(){
   document.getElementById("sidebar").classList.toggle("active");
 }
 
-/* 🔥 PURPOSE: future use (user data load) */
-// TODO: fetch user balance from server
+/* ================= USER ================= */
+const userId = localStorage.getItem("userId") || Date.now();
+localStorage.setItem("userId", userId);
+
+/* ================= LOAD USER ================= */
+async function loadUser(){
+  try{
+    const res = await fetch("/api/user/" + userId);
+    const data = await res.json();
+
+    document.getElementById("balance").innerText = "৳ " + data.balance;
+  }catch{
+    console.log("error");
+  }
+}
+
+loadUser();
 
 </script>
 
