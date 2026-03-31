@@ -61,7 +61,7 @@ body{
   100%{background-position:200%;}
 }
 
-/* ===== SIDEBAR ===== */
+/* ===== SIDEBAR (INDEX SAME) ===== */
 .sidebar{
   position:fixed;
   left:-270px;
@@ -95,7 +95,7 @@ body{
   overflow:hidden;
 }
 
-/* RGB border */
+/* RGB */
 .sidebar a::before{
   content:"";
   position:absolute;
@@ -128,17 +128,14 @@ body{
   display:none;
   z-index:1500;
 }
-
-.overlay.active{
-  display:block;
-}
+.overlay.active{display:block;}
 
 /* ===== CONTENT ===== */
 .container{
   padding:80px 15px 120px;
 }
 
-/* ===== INFO TEXT ===== */
+/* ===== INFO TEXT (NEW 200 WORD) ===== */
 .info{
   background:#0a1c1f;
   padding:15px;
@@ -155,7 +152,7 @@ body{
   border-radius:12px;
 }
 
-/* ===== RGB BUTTON ===== */
+/* ===== BUTTON RGB (INDEX SAME) ===== */
 button{
   width:100%;
   padding:14px;
@@ -189,12 +186,12 @@ button::after{
   z-index:-1;
 }
 
-/* ===== NAV ===== */
+/* ===== NAV (INDEX SAME) ===== */
 .nav{
   position:fixed;
   bottom:0;
   width:100%;
-  height:70px;
+  height:75px;
   background:#000;
   display:flex;
   justify-content:space-around;
@@ -204,7 +201,7 @@ button::after{
 .nav a{
   color:white;
   text-decoration:none;
-  font-size:15px;
+  font-size:16px;
   text-align:center;
 }
 
@@ -226,7 +223,7 @@ button::after{
 <!-- HEADER -->
 <div class="header">
   <div class="menuBtn" onclick="toggleMenu()">☰</div>
-  Task Earn
+  📺 Task Earn
   <div class="balance" id="balance">৳ 0</div>
 </div>
 
@@ -234,7 +231,11 @@ button::after{
 <div class="container">
 
 <div class="info">
-এই পেজে আপনি বিজ্ঞাপন দেখে আয় করতে পারবেন। অনেক প্ল্যাটফর্ম বেশি আয়ের লোভ দেখায় কিন্তু পেমেন্ট দেয় না। আমাদের সিস্টেমে আপনি যতটুকু কাজ করবেন ঠিক ততটুকুই রিয়েল ইনকাম পাবেন। প্রতিটি বিজ্ঞাপন সম্পূর্ণ দেখলে আপনার অ্যাকাউন্টে টাকা যুক্ত হবে। নিয়মিত কাজ করলে ধীরে ধীরে ভালো ব্যালেন্স তৈরি হবে এবং আপনি সহজেই উইথড্র করতে পারবেন।
+এই প্ল্যাটফর্মে আপনি বাস্তব বিজ্ঞাপন দেখে আয় করতে পারবেন। অনেক ওয়েবসাইট বেশি আয়ের প্রতিশ্রুতি দেয় কিন্তু পরে কোনো পেমেন্ট করে না। এখানে সেই রকম নয়—আপনি যতগুলো অ্যাড সম্পূর্ণভাবে দেখবেন, ঠিক ততটাই ইনকাম পাবেন। প্রতিটি ৫টি বিজ্ঞাপন সম্পূর্ণ করলে আপনি ক্লেইম করে সরাসরি আপনার ব্যালেন্সে টাকা যোগ করতে পারবেন।
+
+এই সিস্টেমটি ধীরে ধীরে ইনকাম করার জন্য তৈরি করা হয়েছে যাতে ব্যবহারকারীরা নিরাপদভাবে আয় করতে পারে। আপনি যদি প্রতিদিন নিয়মিত কাজ করেন, তাহলে খুব দ্রুত একটি ভালো ব্যালেন্স তৈরি করতে পারবেন। এখানে কোনো ফেক প্রতিশ্রুতি নেই, বরং বাস্তব এবং যাচাইযোগ্য আয়ের সুযোগ রয়েছে।
+
+দ্রুত আয় করতে চাইলে প্রতিদিন লগইন করুন, সব বিজ্ঞাপন সম্পূর্ণ দেখুন এবং ক্লেইম করতে ভুলবেন না। এতে আপনার আয় নিশ্চিতভাবে বাড়বে।
 </div>
 
 <div class="card">
@@ -267,7 +268,7 @@ localStorage.setItem("userId", userId);
 
 const deviceId = navigator.userAgent;
 
-// LOAD USER
+// ===== LOAD USER =====
 async function loadUser(){
   const res = await fetch("/api/user/" + userId);
   const data = await res.json();
@@ -277,11 +278,11 @@ async function loadUser(){
   let count = data.totalAds % 5;
   document.getElementById("progress").innerText = "Progress: " + count + " / 5";
 
-  document.getElementById("claimBtn").disabled = count < 5;
+  document.getElementById("claimBtn").disabled = count !== 0 || data.totalAds < 5;
 }
 loadUser();
 
-// WATCH AD
+// ===== WATCH AD =====
 function watchAd(){
 
   window.open("https://www.profitablecpmratenetwork.com/kxq650wd?key=11d1ec5f3d88b1d9689e0547e8b15dd1");
@@ -304,7 +305,6 @@ function watchAd(){
     const data = await res.json();
 
     if(data.success){
-      alert("✅ Done");
       loadUser();
     }
 
@@ -313,7 +313,7 @@ function watchAd(){
   },15000);
 }
 
-// CLAIM
+// ===== CLAIM FIX =====
 async function claimReward(){
 
   const res = await fetch("/api/claim-task",{
