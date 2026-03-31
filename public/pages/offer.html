@@ -8,39 +8,200 @@
 
 <style>
 
-/* 🔥 BASIC UI */
-body{
-  background:#0a0a0a;
-  color:white;
-  font-family:sans-serif;
+/* ===== RESET ===== */
+*{
+  margin:0;
+  padding:0;
+  box-sizing:border-box;
 }
 
+/* ===== BODY ===== */
+body{
+  font-family:sans-serif;
+  background:#050505;
+  color:white;
+}
+
+/* ===== HEADER ===== */
 .header{
+  position:fixed;
+  top:0;
+  width:100%;
+  height:60px;
+  background:#000;
   display:flex;
-  justify-content:space-between;
-  padding:15px;
+  align-items:center;
+  justify-content:center;
+  font-size:20px;
+  font-weight:bold;
+  z-index:1000;
+}
+
+.menuBtn{
+  position:absolute;
+  left:15px;
+  font-size:22px;
+  cursor:pointer;
 }
 
 .balance{
-  color:#00ffcc;
+  position:absolute;
+  right:15px;
+  font-size:18px;
+  font-weight:bold;
+  background:linear-gradient(90deg,#00ffcc,#00ffff,#00ffcc);
+  background-size:200%;
+  -webkit-background-clip:text;
+  color:transparent;
+  animation:glow 2s linear infinite;
 }
 
-.card{
-  margin:15px;
-  padding:15px;
-  background:#111;
-  border-radius:10px;
+@keyframes glow{
+  0%{background-position:0%;}
+  100%{background-position:200%;}
 }
 
-a.btn{
+/* ===== SIDEBAR (INDEX SAME) ===== */
+.sidebar{
+  position:fixed;
+  left:-270px;
+  top:0;
+  width:270px;
+  height:100%;
+  background:#050505;
+  padding:20px;
+  transition:0.3s;
+  z-index:2000;
+  box-shadow:5px 0 20px #00ffff22;
+}
+
+.sidebar.active{ left:0; }
+
+.sidebar h3{
+  font-size:22px;
+  color:#00ffff;
+}
+
+.sidebar a{
   display:block;
-  padding:12px;
-  margin-top:10px;
-  background:#00ffff;
-  color:black;
-  text-align:center;
-  border-radius:8px;
+  margin:12px 0;
+  padding:14px;
+  background:#000;
+  border-radius:10px;
   text-decoration:none;
+  color:white;
+  position:relative;
+  overflow:hidden;
+}
+
+/* RGB */
+.sidebar a::before{
+  content:"";
+  position:absolute;
+  inset:-2px;
+  background:linear-gradient(60deg,red,orange,yellow,lime,cyan,blue,violet,red);
+  background-size:300%;
+  animation:rgb 4s linear infinite;
+  z-index:-1;
+}
+
+.sidebar a::after{
+  content:"";
+  position:absolute;
+  inset:2px;
+  background:#000;
+  z-index:-1;
+}
+
+@keyframes rgb{
+  0%{background-position:0%}
+  100%{background-position:300%}
+}
+
+/* ===== OVERLAY ===== */
+.overlay{
+  position:fixed;
+  width:100%;
+  height:100%;
+  background:rgba(0,0,0,0.6);
+  display:none;
+  z-index:1500;
+}
+.overlay.active{display:block;}
+
+/* ===== CONTENT ===== */
+.container{
+  padding:80px 15px 120px;
+}
+
+/* ===== INFO TEXT ===== */
+.info{
+  background:#0a1c1f;
+  padding:15px;
+  border-radius:10px;
+  margin-bottom:15px;
+  font-size:14px;
+  line-height:1.6;
+}
+
+/* ===== CARD ===== */
+.card{
+  background:#111;
+  padding:20px;
+  border-radius:12px;
+}
+
+/* ===== BUTTON (INDEX STYLE) ===== */
+.btn{
+  display:block;
+  padding:14px;
+  margin-top:10px;
+  text-align:center;
+  text-decoration:none;
+  font-weight:bold;
+  color:white;
+  background:#000;
+  border-radius:10px;
+  position:relative;
+  overflow:hidden;
+}
+
+.btn::before{
+  content:"";
+  position:absolute;
+  inset:-2px;
+  background:linear-gradient(60deg,red,orange,yellow,lime,cyan,blue,violet,red);
+  background-size:300%;
+  animation:rgb 4s linear infinite;
+  z-index:-1;
+}
+
+.btn::after{
+  content:"";
+  position:absolute;
+  inset:2px;
+  background:#000;
+  z-index:-1;
+}
+
+/* ===== NAV ===== */
+.nav{
+  position:fixed;
+  bottom:0;
+  width:100%;
+  height:75px;
+  background:#000;
+  display:flex;
+  justify-content:space-around;
+  align-items:center;
+  border-top:1px solid #222;
+}
+
+.nav a{
+  color:white;
+  text-decoration:none;
+  font-size:16px;
+  text-align:center;
 }
 
 </style>
@@ -48,46 +209,76 @@ a.btn{
 
 <body>
 
-<!-- ================= MONETAG ================= -->
-<!-- 🔥 PURPOSE: extra ad income -->
-<script src="https://quge5.com/88/tag.min.js" data-zone="224604" async data-cfasync="false"></script>
+<!-- MONETAG -->
+<script src="https://quge5.com/88/tag.min.js" data-zone="224604" async></script>
 
-<!-- ================= HEADER ================= -->
-<div class="header">
-  <h3>🎯 Offer Earn</h3>
-  <div class="balance">৳ 0.00</div>
+<!-- SIDEBAR -->
+<div class="sidebar" id="sidebar">
+  <h3>Menu</h3>
+  <a href="#">💸 Withdraw</a>
+  <a href="#">📊 History</a>
+  <a href="#">👤 Profile</a>
 </div>
 
-<!-- ================= OFFER SECTION ================= -->
-<div class="card">
+<div class="overlay" id="overlay" onclick="toggleMenu()"></div>
 
-  <!-- 🔥 PURPOSE: CPA offer link -->
+<!-- HEADER -->
+<div class="header">
+  <div class="menuBtn" onclick="toggleMenu()">☰</div>
+  🎁 Offer Earn
+  <div class="balance" id="balance">৳ 0</div>
+</div>
+
+<!-- CONTENT -->
+<div class="container">
+
+<div class="info">
+এই অফার সেকশনটি আপনার ইনকাম দ্রুত বাড়ানোর সবচেয়ে শক্তিশালী উপায়। এখানে আপনি শুধু বিজ্ঞাপন দেখেই নয়, বরং স্পনসরড টাস্ক সম্পন্ন করে অনেক বেশি টাকা আয় করতে পারবেন। সাধারণ টাস্কের তুলনায় এই অফারগুলোতে রিওয়ার্ড বেশি থাকে কারণ প্রতিটি কাজ নির্দিষ্ট কোম্পানির মাধ্যমে দেওয়া হয়। আপনি যদি সঠিকভাবে নির্দেশনা মেনে কাজ সম্পন্ন করেন, তাহলে খুব দ্রুত আপনার ব্যালেন্স বৃদ্ধি পাবে। প্রতিদিন নতুন নতুন অফার যুক্ত হয়, তাই নিয়মিত চেক করুন। যারা স্মার্টভাবে কাজ করে তারা এখান থেকে অনেক বেশি আয় করছে। তাই সময় নষ্ট না করে এখনই শুরু করুন।
+</div>
+
+<div class="card">
   <h4>🔥 High Paying Offer</h4>
   <p>Complete the offer and earn real money 💰</p>
 
-  <!-- IMPORTANT: userId pass -->
   <a id="offerLink" class="btn" target="_blank">
     🚀 Start Offer
   </a>
+</div>
 
+</div>
+
+<!-- NAV -->
+<div class="nav">
+  <a href="../index.html">🏠<br>Home</a>
+  <a href="task.html">📺<br>Task</a>
+  <a href="offer.html">🎁<br>Offer</a>
+  <a href="extra.html">⚡<br>Extra</a>
 </div>
 
 <script>
 
-/*
-🔥 PURPOSE:
-CPAGrip link dynamic create (user tracking)
-*/
+function toggleMenu(){
+  document.getElementById("sidebar").classList.toggle("active");
+  document.getElementById("overlay").classList.toggle("active");
+}
 
 const userId = localStorage.getItem("userId") || Date.now();
 localStorage.setItem("userId", userId);
 
-// 👉 YOUR CPA LINK
+// CPA LINK
 const baseLink = "https://playabledownloads.com/1886869";
-
-// add subid
 document.getElementById("offerLink").href =
   baseLink + "?subid=" + userId;
+
+// LOAD BALANCE
+async function loadUser(){
+  try{
+    const res = await fetch("/api/user/" + userId);
+    const data = await res.json();
+    document.getElementById("balance").innerText = "৳ " + data.balance;
+  }catch{}
+}
+loadUser();
 
 </script>
 
