@@ -332,7 +332,7 @@ app.get("/api/wannads-postback", async (req, res) => {
   admin security
 */
 
-const ADMIN_PASSWORD = "1234"; // 🔥 change korba
+const ADMIN_PASSWORD = "Hridoyvi@24423"; // 🔥 change korba
 
 
 // ================= ADMIN LOGIN =================
