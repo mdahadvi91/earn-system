@@ -253,6 +253,50 @@ app.get("/api/postback", async (req, res) => {
 
     if (!user) return res.send("No user");
 
+    // ================= WANNAADS POSTBACK =================
+/*
+  🔥 PURPOSE:
+  WannaAds theke real earning verify kore balance add
+*/
+
+app.get("/api/wannads-postback", async (req, res) => {
+  try {
+    const { userId, reward, trans_id } = req.query;
+
+    // 🚫 check missing data
+    if (!userId || !reward || !trans_id) {
+      return res.send("Invalid");
+    }
+
+    let user = await User.findOne({ userId });
+
+    if (!user) return res.send("No user");
+
+    // ================= DUPLICATE BLOCK =================
+    const exist = await EarnLog.findOne({ source: trans_id });
+    if (exist) return res.send("Duplicate");
+
+    // ================= REAL EARNING =================
+    const amount = Number(reward) * 0.6; // 60% user
+
+    user.balance += amount;
+
+    await user.save();
+
+    await EarnLog.create({
+      userId,
+      amount,
+      source: trans_id
+    });
+
+    res.send("OK");
+
+  } catch (err) {
+    console.error(err);
+    res.send("Error");
+  }
+});
+
     // ================= FAKE PREVENT =================
     /*
       🔥 PURPOSE:
