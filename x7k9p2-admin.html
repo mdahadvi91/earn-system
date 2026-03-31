@@ -1,0 +1,115 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Admin Panel</title>
+
+<style>
+body{background:#0a0a0a;color:white;font-family:sans-serif;}
+.box{padding:15px;}
+input,button{padding:10px;width:100%;margin-top:10px;}
+.card{background:#111;margin:10px;padding:10px;border-radius:8px;}
+</style>
+</head>
+
+<body>
+
+<div class="box">
+
+<!-- ================= LOGIN ================= -->
+<div id="loginBox">
+  <h3>🔐 Admin Login</h3>
+  <input id="pass" placeholder="Enter Password">
+  <button onclick="login()">Login</button>
+</div>
+
+<!-- ================= PANEL ================= -->
+<div id="panel" style="display:none;">
+
+  <h3>👥 Users</h3>
+  <div id="users"></div>
+
+  <h3>💸 Withdraw Requests</h3>
+  <div id="withdraws"></div>
+
+</div>
+
+</div>
+
+<script>
+
+/* 🔥 LOGIN */
+async function login(){
+
+  const password = document.getElementById("pass").value;
+
+  const res = await fetch("/api/admin/login",{
+    method:"POST",
+    headers:{"Content-Type":"application/json"},
+    body:JSON.stringify({password})
+  });
+
+  const data = await res.json();
+
+  if(data.success){
+    document.getElementById("loginBox").style.display="none";
+    document.getElementById("panel").style.display="block";
+
+    loadUsers();
+    loadWithdraws();
+  }else{
+    alert("Wrong password");
+  }
+}
+
+/* 🔥 LOAD USERS */
+async function loadUsers(){
+  const res = await fetch("/api/admin/users");
+  const data = await res.json();
+
+  let html="";
+  data.forEach(u=>{
+    html+=`<div class="card">
+      ID: ${u.userId} <br>
+      Balance: ৳ ${u.balance}
+    </div>`;
+  });
+
+  document.getElementById("users").innerHTML=html;
+}
+
+/* 🔥 LOAD WITHDRAW */
+async function loadWithdraws(){
+  const res = await fetch("/api/admin/withdraws");
+  const data = await res.json();
+
+  let html="";
+  data.forEach(w=>{
+    html+=`<div class="card">
+      User: ${w.userId} <br>
+      ${w.method} - ${w.account} <br>
+      ৳ ${w.amount} <br>
+      Status: ${w.status} <br>
+      <button onclick="approve('${w._id}')">Approve</button>
+    </div>`;
+  });
+
+  document.getElementById("withdraws").innerHTML=html;
+}
+
+/* 🔥 APPROVE */
+async function approve(id){
+  await fetch("/api/admin/approve",{
+    method:"POST",
+    headers:{"Content-Type":"application/json"},
+    body:JSON.stringify({id})
+  });
+
+  alert("Approved");
+  loadWithdraws();
+}
+
+</script>
+
+</body>
+</html>
