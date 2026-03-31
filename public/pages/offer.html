@@ -1,0 +1,95 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+<title>Offer Earn</title>
+
+<style>
+
+/* 🔥 BASIC UI */
+body{
+  background:#0a0a0a;
+  color:white;
+  font-family:sans-serif;
+}
+
+.header{
+  display:flex;
+  justify-content:space-between;
+  padding:15px;
+}
+
+.balance{
+  color:#00ffcc;
+}
+
+.card{
+  margin:15px;
+  padding:15px;
+  background:#111;
+  border-radius:10px;
+}
+
+a.btn{
+  display:block;
+  padding:12px;
+  margin-top:10px;
+  background:#00ffff;
+  color:black;
+  text-align:center;
+  border-radius:8px;
+  text-decoration:none;
+}
+
+</style>
+</head>
+
+<body>
+
+<!-- ================= MONETAG ================= -->
+<!-- 🔥 PURPOSE: extra ad income -->
+<script src="https://quge5.com/88/tag.min.js" data-zone="224604" async data-cfasync="false"></script>
+
+<!-- ================= HEADER ================= -->
+<div class="header">
+  <h3>🎯 Offer Earn</h3>
+  <div class="balance">৳ 0.00</div>
+</div>
+
+<!-- ================= OFFER SECTION ================= -->
+<div class="card">
+
+  <!-- 🔥 PURPOSE: CPA offer link -->
+  <h4>🔥 High Paying Offer</h4>
+  <p>Complete the offer and earn real money 💰</p>
+
+  <!-- IMPORTANT: userId pass -->
+  <a id="offerLink" class="btn" target="_blank">
+    🚀 Start Offer
+  </a>
+
+</div>
+
+<script>
+
+/*
+🔥 PURPOSE:
+CPAGrip link dynamic create (user tracking)
+*/
+
+const userId = localStorage.getItem("userId") || Date.now();
+localStorage.setItem("userId", userId);
+
+// 👉 YOUR CPA LINK
+const baseLink = "https://playabledownloads.com/1886869";
+
+// add subid
+document.getElementById("offerLink").href =
+  baseLink + "?subid=" + userId;
+
+</script>
+
+</body>
+</html>
