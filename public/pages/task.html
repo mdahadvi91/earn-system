@@ -6,23 +6,15 @@
 
 <title>Task Earn</title>
 
-<!-- ================= STYLE ================= -->
 <style>
 
-/* 🔥 RESET */
-*{
-  margin:0;
-  padding:0;
-  box-sizing:border-box;
-  font-family:sans-serif;
-}
-
+/* 🔥 DESIGN */
 body{
   background:#0a0a0a;
   color:white;
+  font-family:sans-serif;
 }
 
-/* ================= HEADER ================= */
 .header{
   display:flex;
   justify-content:space-between;
@@ -33,43 +25,21 @@ body{
   color:#00ffcc;
 }
 
-/* ================= TASK BOX ================= */
-.task{
+.card{
   margin:15px;
   padding:20px;
+  background:#111;
   border-radius:12px;
-  background:rgba(255,255,255,0.05);
 }
 
 button{
-  padding:10px;
+  padding:12px;
   border:none;
+  border-radius:8px;
   background:#00ffff;
   color:black;
-  border-radius:8px;
-  margin-top:10px;
   cursor:pointer;
-}
-
-button:disabled{
-  background:#555;
-}
-
-/* ================= FOOTER NAV ================= */
-.nav{
-  position:fixed;
-  bottom:0;
-  width:100%;
-  display:flex;
-  justify-content:space-around;
-  background:#111;
-  padding:10px 0;
-}
-
-.nav a{
-  color:white;
-  text-decoration:none;
-  font-size:12px;
+  margin-top:10px;
 }
 
 </style>
@@ -83,40 +53,27 @@ button:disabled{
   <div class="balance">৳ 0.00</div>
 </div>
 
-<!-- ================= TASK SYSTEM ================= -->
-<div class="task">
+<!-- ================= TASK BOX ================= -->
+<div class="card">
 
-  <!-- 🔥 PURPOSE: show task progress -->
   <h4>Complete 5 Ads</h4>
   <p>Watch ads and earn real money</p>
 
-  <!-- progress -->
+  <!-- 🔥 PROGRESS -->
   <p id="progress">Progress: 0 / 5</p>
 
-  <!-- watch ad button -->
-  <button onclick="watchAd()">▶ Watch Ad</button>
+  <!-- 🔥 BUTTON -->
+  <button id="watchBtn" onclick="watchAd()">▶ Watch Ad</button>
 
-  <!-- claim button -->
-  <button id="claimBtn" onclick="claimReward()" disabled>
-    💰 Claim Reward
-  </button>
+  <button onclick="claimReward()">💰 Claim Reward</button>
 
 </div>
 
-<!-- ================= NAV ================= -->
-<div class="nav">
-  <a href="../index.html">🏠 Home</a>
-  <a href="task.html">📺 Task</a>
-  <a href="offer.html">🎯 Offer</a>
-  <a href="extra.html">⚡ Extra</a>
-</div>
-
-<!-- ================= SCRIPT ================= -->
 <script>
 
 /*
 🔥 PURPOSE:
-Frontend + backend connect
+Full working task system
 */
 
 const userId = localStorage.getItem("userId") || Date.now();
@@ -124,13 +81,48 @@ localStorage.setItem("userId", userId);
 
 const deviceId = navigator.userAgent;
 
+let count = 0;
+
+/* ================= LOAD USER ================= */
+fetch("/api/user/" + userId);
+
 /* ================= WATCH AD ================= */
-async function watchAd(){
+function watchAd(){
 
-  window.open("https://www.profitablecpmratenetwork.com/kxq650wd?key=11d1ec5f3d88b1d9689e0547e8b15dd1","_blank");
+  // open ad
+  window.open(
+    "https://www.profitablecpmratenetwork.com/kxq650wd?key=11d1ec5f3d88b1d9689e0547e8b15dd1",
+    "_blank"
+  );
 
-  setTimeout(async ()=>{
+  let timeLeft = 15;
 
+  const btn = document.getElementById("watchBtn");
+
+  btn.innerText = "⏳ " + timeLeft + " sec";
+
+  const timer = setInterval(()=>{
+    timeLeft--;
+
+    btn.innerText = "⏳ " + timeLeft + " sec";
+
+    if(timeLeft <= 0){
+      clearInterval(timer);
+
+      btn.innerText = "❌ Close Ad (Complete)";
+      btn.onclick = completeAd;
+    }
+
+  },1000);
+}
+
+/* ================= COMPLETE AD ================= */
+async function completeAd(){
+
+  const btn = document.getElementById("watchBtn");
+  btn.innerText = "Loading...";
+
+  try{
     const res = await fetch("/api/watch-ad",{
       method:"POST",
       headers:{"Content-Type":"application/json"},
@@ -140,13 +132,26 @@ async function watchAd(){
     const data = await res.json();
 
     if(data.success){
+
+      count = data.totalAds % 5;
+
       document.getElementById("progress").innerText =
-        "Progress: " + (data.totalAds % 5) + " / 5";
+        "Progress: " + count + " / 5";
+
+      btn.innerText = "▶ Watch Ad";
+      btn.onclick = watchAd;
+
+      if(count === 0){
+        alert("🎉 Task Complete! Now claim reward");
+      }
+
     }else{
-      alert(data.error || data.message);
+      alert(data.error || "Server error");
     }
 
-  },15000);
+  }catch(e){
+    alert("Server error");
+  }
 }
 
 /* ================= CLAIM ================= */
@@ -162,13 +167,13 @@ async function claimReward(){
 
   if(data.success){
     alert("💰 Earned: ৳ " + data.reward);
+
     document.querySelector(".balance").innerText =
       "৳ " + data.balance;
   }else{
     alert(data.error);
   }
 }
-
 
 </script>
 
