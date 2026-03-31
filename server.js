@@ -326,6 +326,50 @@ app.get("/api/wannads-postback", async (req, res) => {
   }
 });
 
+// ================= ADMIN CONFIG =================
+/*
+  🔥 PURPOSE:
+  admin security
+*/
+
+const ADMIN_PASSWORD = "1234"; // 🔥 change korba
+
+
+// ================= ADMIN LOGIN =================
+app.post("/api/admin/login", (req, res) => {
+  const { password } = req.body;
+
+  if (password === ADMIN_PASSWORD) {
+    return res.json({ success: true });
+  } else {
+    return res.status(401).json({ error: "Wrong password" });
+  }
+});
+
+// ================= GET USERS =================
+app.get("/api/admin/users", async (req, res) => {
+  const users = await User.find().limit(100);
+  res.json(users);
+});
+
+// ================= GET WITHDRAW =================
+app.get("/api/admin/withdraws", async (req, res) => {
+  const data = await Withdraw.find().sort({ time: -1 });
+  res.json(data);
+});
+
+
+// ================= APPROVE =================
+app.post("/api/admin/approve", async (req, res) => {
+  const { id } = req.body;
+
+  await Withdraw.findByIdAndUpdate(id, {
+    status: "approved"
+  });
+
+  res.json({ success: true });
+});
+
 // ================= DAILY BONUS =================
 /*
   🔥 PURPOSE:
