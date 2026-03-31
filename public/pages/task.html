@@ -116,53 +116,59 @@ button:disabled{
 
 /*
 🔥 PURPOSE:
-Task system control
+Frontend + backend connect
 */
 
-let adCount = 0;
-let timerActive = false;
+const userId = localStorage.getItem("userId") || Date.now();
+localStorage.setItem("userId", userId);
+
+const deviceId = navigator.userAgent;
 
 /* ================= WATCH AD ================= */
-function watchAd(){
+async function watchAd(){
 
-  if(timerActive) return;
-
-  timerActive = true;
-
-  // 🔥 open Adsterra link
   window.open("https://www.profitablecpmratenetwork.com/kxq650wd?key=11d1ec5f3d88b1d9689e0547e8b15dd1","_blank");
 
-  // 🔥 start 15 sec timer
-  setTimeout(()=>{
+  setTimeout(async ()=>{
 
-    adCount++;
-    timerActive = false;
+    const res = await fetch("/api/watch-ad",{
+      method:"POST",
+      headers:{"Content-Type":"application/json"},
+      body:JSON.stringify({userId, deviceId})
+    });
 
-    document.getElementById("progress").innerText = "Progress: " + adCount + " / 5";
+    const data = await res.json();
 
-    // enable claim
-    if(adCount >= 5){
-      document.getElementById("claimBtn").disabled = false;
+    if(data.success){
+      document.getElementById("progress").innerText =
+        "Progress: " + (data.totalAds % 5) + " / 5";
+    }else{
+      alert(data.error || data.message);
     }
 
   },15000);
 }
 
 /* ================= CLAIM ================= */
-function claimReward(){
+async function claimReward(){
 
-  /*
-  🔥 PURPOSE:
-  claim korle reward add hobe (backend e add korbo pore)
-  */
+  const res = await fetch("/api/claim-task",{
+    method:"POST",
+    headers:{"Content-Type":"application/json"},
+    body:JSON.stringify({userId})
+  });
 
-  alert("✅ Task Completed! Reward Added");
+  const data = await res.json();
 
-  // reset
-  adCount = 0;
-  document.getElementById("progress").innerText = "Progress: 0 / 5";
-  document.getElementById("claimBtn").disabled = true;
+  if(data.success){
+    alert("💰 Earned: ৳ " + data.reward);
+    document.querySelector(".balance").innerText =
+      "৳ " + data.balance;
+  }else{
+    alert(data.error);
+  }
 }
+
 
 </script>
 
