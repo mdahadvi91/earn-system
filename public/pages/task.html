@@ -1,0 +1,170 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+<title>Task Earn</title>
+
+<!-- ================= STYLE ================= -->
+<style>
+
+/* 🔥 RESET */
+*{
+  margin:0;
+  padding:0;
+  box-sizing:border-box;
+  font-family:sans-serif;
+}
+
+body{
+  background:#0a0a0a;
+  color:white;
+}
+
+/* ================= HEADER ================= */
+.header{
+  display:flex;
+  justify-content:space-between;
+  padding:15px;
+}
+
+.balance{
+  color:#00ffcc;
+}
+
+/* ================= TASK BOX ================= */
+.task{
+  margin:15px;
+  padding:20px;
+  border-radius:12px;
+  background:rgba(255,255,255,0.05);
+}
+
+button{
+  padding:10px;
+  border:none;
+  background:#00ffff;
+  color:black;
+  border-radius:8px;
+  margin-top:10px;
+  cursor:pointer;
+}
+
+button:disabled{
+  background:#555;
+}
+
+/* ================= FOOTER NAV ================= */
+.nav{
+  position:fixed;
+  bottom:0;
+  width:100%;
+  display:flex;
+  justify-content:space-around;
+  background:#111;
+  padding:10px 0;
+}
+
+.nav a{
+  color:white;
+  text-decoration:none;
+  font-size:12px;
+}
+
+</style>
+</head>
+
+<body>
+
+<!-- ================= HEADER ================= -->
+<div class="header">
+  <h3>📺 Task Earn</h3>
+  <div class="balance">৳ 0.00</div>
+</div>
+
+<!-- ================= TASK SYSTEM ================= -->
+<div class="task">
+
+  <!-- 🔥 PURPOSE: show task progress -->
+  <h4>Complete 5 Ads</h4>
+  <p>Watch ads and earn real money</p>
+
+  <!-- progress -->
+  <p id="progress">Progress: 0 / 5</p>
+
+  <!-- watch ad button -->
+  <button onclick="watchAd()">▶ Watch Ad</button>
+
+  <!-- claim button -->
+  <button id="claimBtn" onclick="claimReward()" disabled>
+    💰 Claim Reward
+  </button>
+
+</div>
+
+<!-- ================= NAV ================= -->
+<div class="nav">
+  <a href="../index.html">🏠 Home</a>
+  <a href="task.html">📺 Task</a>
+  <a href="offer.html">🎯 Offer</a>
+  <a href="extra.html">⚡ Extra</a>
+</div>
+
+<!-- ================= SCRIPT ================= -->
+<script>
+
+/*
+🔥 PURPOSE:
+Task system control
+*/
+
+let adCount = 0;
+let timerActive = false;
+
+/* ================= WATCH AD ================= */
+function watchAd(){
+
+  if(timerActive) return;
+
+  timerActive = true;
+
+  // 🔥 open Adsterra link
+  window.open("https://www.profitablecpmratenetwork.com/kxq650wd?key=11d1ec5f3d88b1d9689e0547e8b15dd1","_blank");
+
+  // 🔥 start 15 sec timer
+  setTimeout(()=>{
+
+    adCount++;
+    timerActive = false;
+
+    document.getElementById("progress").innerText = "Progress: " + adCount + " / 5";
+
+    // enable claim
+    if(adCount >= 5){
+      document.getElementById("claimBtn").disabled = false;
+    }
+
+  },15000);
+}
+
+/* ================= CLAIM ================= */
+function claimReward(){
+
+  /*
+  🔥 PURPOSE:
+  claim korle reward add hobe (backend e add korbo pore)
+  */
+
+  alert("✅ Task Completed! Reward Added");
+
+  // reset
+  adCount = 0;
+  document.getElementById("progress").innerText = "Progress: 0 / 5";
+  document.getElementById("claimBtn").disabled = true;
+}
+
+</script>
+
+</body>
+</html>
