@@ -145,33 +145,88 @@ async function loadUser(){
 }
 loadUser();
 
-// ================= WATCH AD =================
+// ================= WATCH AD ================
 function watchAd(){
 
+  // 🔥 open ad
   window.open(
     "https://www.profitablecpmratenetwork.com/kxq650wd?key=11d1ec5f3d88b1d9689e0547e8b15dd1",
     "_blank"
   );
 
-  let timeLeft = 15;
-  const btn = document.getElementById("watchBtn");
+  // 🔥 overlay create
+  const overlay = document.createElement("div");
 
-  btn.disabled = true;
+  overlay.style.position = "fixed";
+  overlay.style.top = 0;
+  overlay.style.left = 0;
+  overlay.style.width = "100%";
+  overlay.style.height = "100%";
+  overlay.style.background = "rgba(0,0,0,0.9)";
+  overlay.style.display = "flex";
+  overlay.style.flexDirection = "column";
+  overlay.style.alignItems = "center";
+  overlay.style.justifyContent = "center";
+  overlay.style.zIndex = 9999;
+  overlay.style.color = "white";
+
+  overlay.innerHTML = `
+    <h2>⏳ Watching Ad...</h2>
+    <h1 id="timer">15</h1>
+    <p>Wait until timer ends</p>
+    <button id="closeBtn" style="display:none;padding:15px;margin-top:20px;">❌ Close & Earn</button>
+  `;
+
+  document.body.appendChild(overlay);
+
+  let time = 15;
 
   const timer = setInterval(()=>{
-    timeLeft--;
+    time--;
+    document.getElementById("timer").innerText = time;
 
-    btn.innerText = "⏳ " + timeLeft + " sec";
-
-    if(timeLeft <= 0){
+    if(time <= 0){
       clearInterval(timer);
-
-      btn.innerText = "❌ Close Ad";
-      btn.disabled = false;
-      btn.onclick = completeAd;
+      document.getElementById("closeBtn").style.display = "block";
     }
 
   },1000);
+
+  // 🔥 complete ad
+  document.getElementById("closeBtn").onclick = async () => {
+
+    try{
+      const res = await fetch("/api/watch-ad",{
+        method:"POST",
+        headers:{"Content-Type":"application/json"},
+        body:JSON.stringify({
+          userId: userId,
+          deviceId: deviceId
+        })
+      });
+
+      const data = await res.json();
+
+      if(data.success){
+
+        let count = data.totalAds % 5;
+
+        document.getElementById("progress").innerText =
+          "Progress: " + count + " / 5";
+
+        alert("✅ Ad Completed!");
+
+      }else{
+        alert(data.error || "Error");
+      }
+
+    }catch{
+      alert("Server error");
+    }
+
+    overlay.remove();
+  };
+
 }
 
 // ================= COMPLETE =================
