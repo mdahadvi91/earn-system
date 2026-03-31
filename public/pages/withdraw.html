@@ -1,0 +1,77 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Withdraw</title>
+
+<style>
+body{background:#0a0a0a;color:white;font-family:sans-serif;}
+.grid{display:flex;gap:10px;padding:10px;}
+.card{flex:1;background:#111;padding:15px;border-radius:10px;text-align:center;cursor:pointer;}
+.form{display:none;padding:15px;}
+input{width:100%;padding:10px;margin-top:10px;}
+button{padding:12px;background:#00ffff;border:none;width:100%;margin-top:10px;}
+</style>
+</head>
+
+<body>
+
+<h3 style="padding:10px;">💸 Withdraw</h3>
+
+<!-- ================= GRID ================= -->
+<div class="grid">
+  <div class="card" onclick="openForm('bkash')">bKash</div>
+  <div class="card" onclick="openForm('nogod')">Nagad</div>
+  <div class="card" onclick="openForm('binance')">Binance</div>
+</div>
+
+<!-- ================= FORM ================= -->
+<div class="form" id="form">
+
+  <h4 id="methodTitle"></h4>
+
+  <input id="account" placeholder="Account Number / ID">
+  <input id="amount" placeholder="Amount">
+
+  <button onclick="submitWithdraw()">Withdraw</button>
+
+</div>
+
+<script>
+
+const userId = localStorage.getItem("userId");
+
+let method = "";
+
+/* 🔥 open form */
+function openForm(m){
+  method = m;
+  document.getElementById("form").style.display = "block";
+  document.getElementById("methodTitle").innerText = m.toUpperCase();
+}
+
+/* 🔥 submit */
+async function submitWithdraw(){
+
+  const account = document.getElementById("account").value;
+  const amount = Number(document.getElementById("amount").value);
+
+  const res = await fetch("/api/withdraw",{
+    method:"POST",
+    headers:{"Content-Type":"application/json"},
+    body:JSON.stringify({userId, method, account, amount})
+  });
+
+  const data = await res.json();
+
+  if(data.success){
+    alert("✅ Request Sent");
+  }else{
+    alert(data.error);
+  }
+}
+
+</script>
+
+</body>
+</html>
