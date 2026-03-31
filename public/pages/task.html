@@ -1,91 +1,132 @@
 <!DOCTYPE html>
-<html>
+<html lang="en">
 <head>
-<title>Task</title>
-<style>
-body{background:#000;color:#fff;font-family:sans-serif;text-align:center}
-button{padding:15px;margin:10px;border:none;background:#0ff}
-</style>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+<title>Task Earn</title>
+
+<!-- ✅ GLOBAL CSS -->
+<link rel="stylesheet" href="../style.css">
+
 </head>
 
 <body>
 
-<h2>📺 Task Earn</h2>
-<h3 id="balance">৳ 0</h3>
+<!-- ================= HEADER ================= -->
+<div class="header">
+  <h3>📺 Task Earn</h3>
+  <div class="balance" id="balance">৳ 0</div>
+</div>
 
-<p id="progress">0 / 5</p>
+<!-- ================= TASK ================= -->
+<div class="card">
 
-<button id="watchBtn" onclick="watchAd()">Watch Ad</button>
-<button id="claimBtn" onclick="claim()" disabled>Claim</button>
+  <h4>Complete 5 Ads</h4>
+  <p>Watch ads and earn real money</p>
+
+  <p id="progress">Progress: 0 / 5</p>
+
+  <button id="watchBtn" onclick="watchAd()">▶ Watch Ad</button>
+  <button onclick="claimReward()">💰 Claim Reward</button>
+
+</div>
+
+<!-- ================= FOOTER NAV ================= -->
+<div class="footer">
+  <a href="../index.html">🏠 Home</a>
+  <a href="task.html">📺 Task</a>
+  <a href="offer.html">🎁 Offer</a>
+  <a href="extra.html">💰 Extra</a>
+</div>
 
 <script>
 
+// ================= USER =================
 const userId = localStorage.getItem("userId") || Date.now();
-localStorage.setItem("userId",userId);
+localStorage.setItem("userId", userId);
 
 const deviceId = navigator.userAgent;
 
-let count=0;
+let count = 0;
 
-// load user
-async function load(){
-  const res = await fetch("/api/user/"+userId);
+// ================= LOAD USER =================
+async function loadUser(){
+  const res = await fetch("/api/user/" + userId);
   const data = await res.json();
 
-  document.getElementById("balance").innerText="৳ "+data.balance;
-
-  count = data.totalAds % 5;
-  if(count===0 && data.totalAds!==0) count=5;
-
-  document.getElementById("progress").innerText=count+" / 5";
-
-  document.getElementById("claimBtn").disabled = (count!==5);
+  document.getElementById("balance").innerText = "৳ " + data.balance;
 }
+loadUser();
 
-load();
-
-// watch ad
+// ================= WATCH AD =================
 function watchAd(){
 
-  window.open("https://www.profitablecpmratenetwork.com/kxq650wd?key=11d1ec5f3d88b1d9689e0547e8b15dd1");
+  window.open(
+    "https://www.profitablecpmratenetwork.com/kxq650wd?key=11d1ec5f3d88b1d9689e0547e8b15dd1",
+    "_blank"
+  );
 
-  let t=15;
-  const btn=document.getElementById("watchBtn");
+  let timeLeft = 15;
+  const btn = document.getElementById("watchBtn");
 
-  const timer=setInterval(()=>{
-    t--;
-    btn.innerText="Wait "+t;
+  btn.disabled = true;
 
-    if(t<=0){
+  const timer = setInterval(()=>{
+    timeLeft--;
+    btn.innerText = "⏳ " + timeLeft + " sec";
+
+    if(timeLeft <= 0){
       clearInterval(timer);
-      btn.innerText="Complete";
-      btn.onclick=complete;
+
+      btn.innerText = "❌ Close Ad";
+      btn.disabled = false;
+      btn.onclick = completeAd;
     }
+
   },1000);
 }
 
-// complete
-async function complete(){
+// ================= COMPLETE =================
+async function completeAd(){
 
-  const res = await fetch("/api/watch-ad",{
-    method:"POST",
-    headers:{"Content-Type":"application/json"},
-    body:JSON.stringify({userId,deviceId})
-  });
+  const btn = document.getElementById("watchBtn");
+  btn.innerText = "Loading...";
 
-  const data = await res.json();
+  try{
+    const res = await fetch("/api/watch-ad",{
+      method:"POST",
+      headers:{"Content-Type":"application/json"},
+      body:JSON.stringify({userId, deviceId})
+    });
 
-  if(data.success){
-    load();
-    document.getElementById("watchBtn").innerText="Watch Ad";
-    document.getElementById("watchBtn").onclick=watchAd;
-  }else{
-    alert(data.error);
+    const data = await res.json();
+
+    if(data.success){
+
+      count = data.totalAds % 5;
+
+      document.getElementById("progress").innerText =
+        "Progress: " + count + " / 5";
+
+      btn.innerText = "▶ Watch Ad";
+      btn.onclick = watchAd;
+
+      if(count === 0){
+        alert("🎉 Task Complete! Claim now");
+      }
+
+    }else{
+      alert(data.error || "Error");
+    }
+
+  }catch{
+    alert("Server error");
   }
 }
 
-// claim
-async function claim(){
+// ================= CLAIM =================
+async function claimReward(){
 
   const res = await fetch("/api/claim-task",{
     method:"POST",
@@ -96,8 +137,10 @@ async function claim(){
   const data = await res.json();
 
   if(data.success){
-    alert("Earned "+data.reward);
-    load();
+    alert("💰 Earned: ৳ " + data.reward);
+
+    document.getElementById("balance").innerText =
+      "৳ " + data.balance;
   }else{
     alert(data.error);
   }
