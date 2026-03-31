@@ -1,161 +1,91 @@
 <!DOCTYPE html>
-<html lang="en">
+<html>
 <head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
-
-<title>Task Earn</title>
-
+<title>Task</title>
 <style>
-
-/* 🔥 DESIGN */
-body{
-  background:#0a0a0a;
-  color:white;
-  font-family:sans-serif;
-}
-
-.header{
-  display:flex;
-  justify-content:space-between;
-  padding:15px;
-}
-
-.balance{
-  color:#00ffcc;
-}
-
-.card{
-  margin:15px;
-  padding:20px;
-  background:#111;
-  border-radius:12px;
-}
-
-button{
-  padding:12px;
-  border:none;
-  border-radius:8px;
-  background:#00ffff;
-  color:black;
-  cursor:pointer;
-  margin-top:10px;
-}
-
+body{background:#000;color:#fff;font-family:sans-serif;text-align:center}
+button{padding:15px;margin:10px;border:none;background:#0ff}
 </style>
 </head>
 
 <body>
 
-<!-- ================= HEADER ================= -->
-<div class="header">
-  <h3>📺 Task Earn</h3>
-  <div class="balance">৳ 0.00</div>
-</div>
+<h2>📺 Task Earn</h2>
+<h3 id="balance">৳ 0</h3>
 
-<!-- ================= TASK BOX ================= -->
-<div class="card">
+<p id="progress">0 / 5</p>
 
-  <h4>Complete 5 Ads</h4>
-  <p>Watch ads and earn real money</p>
-
-  <!-- 🔥 PROGRESS -->
-  <p id="progress">Progress: 0 / 5</p>
-
-  <!-- 🔥 BUTTON -->
-  <button id="watchBtn" onclick="watchAd()">▶ Watch Ad</button>
-
-  <button onclick="claimReward()">💰 Claim Reward</button>
-
-</div>
+<button id="watchBtn" onclick="watchAd()">Watch Ad</button>
+<button id="claimBtn" onclick="claim()" disabled>Claim</button>
 
 <script>
 
-/*
-🔥 PURPOSE:
-Full working task system
-*/
-
 const userId = localStorage.getItem("userId") || Date.now();
-localStorage.setItem("userId", userId);
+localStorage.setItem("userId",userId);
 
 const deviceId = navigator.userAgent;
 
-let count = 0;
+let count=0;
 
-/* ================= LOAD USER ================= */
-fetch("/api/user/" + userId);
+// load user
+async function load(){
+  const res = await fetch("/api/user/"+userId);
+  const data = await res.json();
 
-/* ================= WATCH AD ================= */
+  document.getElementById("balance").innerText="৳ "+data.balance;
+
+  count = data.totalAds % 5;
+  if(count===0 && data.totalAds!==0) count=5;
+
+  document.getElementById("progress").innerText=count+" / 5";
+
+  document.getElementById("claimBtn").disabled = (count!==5);
+}
+
+load();
+
+// watch ad
 function watchAd(){
 
-  // open ad
-  window.open(
-    "https://www.profitablecpmratenetwork.com/kxq650wd?key=11d1ec5f3d88b1d9689e0547e8b15dd1",
-    "_blank"
-  );
+  window.open("https://www.profitablecpmratenetwork.com/kxq650wd?key=11d1ec5f3d88b1d9689e0547e8b15dd1");
 
-  let timeLeft = 15;
+  let t=15;
+  const btn=document.getElementById("watchBtn");
 
-  const btn = document.getElementById("watchBtn");
+  const timer=setInterval(()=>{
+    t--;
+    btn.innerText="Wait "+t;
 
-  btn.innerText = "⏳ " + timeLeft + " sec";
-
-  const timer = setInterval(()=>{
-    timeLeft--;
-
-    btn.innerText = "⏳ " + timeLeft + " sec";
-
-    if(timeLeft <= 0){
+    if(t<=0){
       clearInterval(timer);
-
-      btn.innerText = "❌ Close Ad (Complete)";
-      btn.onclick = completeAd;
+      btn.innerText="Complete";
+      btn.onclick=complete;
     }
-
   },1000);
 }
 
-/* ================= COMPLETE AD ================= */
-async function completeAd(){
+// complete
+async function complete(){
 
-  const btn = document.getElementById("watchBtn");
-  btn.innerText = "Loading...";
+  const res = await fetch("/api/watch-ad",{
+    method:"POST",
+    headers:{"Content-Type":"application/json"},
+    body:JSON.stringify({userId,deviceId})
+  });
 
-  try{
-    const res = await fetch("/api/watch-ad",{
-      method:"POST",
-      headers:{"Content-Type":"application/json"},
-      body:JSON.stringify({userId, deviceId})
-    });
+  const data = await res.json();
 
-    const data = await res.json();
-
-    if(data.success){
-
-      count = data.totalAds % 5;
-
-      document.getElementById("progress").innerText =
-        "Progress: " + count + " / 5";
-
-      btn.innerText = "▶ Watch Ad";
-      btn.onclick = watchAd;
-
-      if(count === 0){
-        alert("🎉 Task Complete! Now claim reward");
-      }
-
-    }else{
-      alert(data.error || "Server error");
-    }
-
-  }catch(e){
-    alert("Server error");
+  if(data.success){
+    load();
+    document.getElementById("watchBtn").innerText="Watch Ad";
+    document.getElementById("watchBtn").onclick=watchAd;
+  }else{
+    alert(data.error);
   }
 }
 
-/* ================= CLAIM ================= */
-async function claimReward(){
+// claim
+async function claim(){
 
   const res = await fetch("/api/claim-task",{
     method:"POST",
@@ -166,10 +96,8 @@ async function claimReward(){
   const data = await res.json();
 
   if(data.success){
-    alert("💰 Earned: ৳ " + data.reward);
-
-    document.querySelector(".balance").innerText =
-      "৳ " + data.balance;
+    alert("Earned "+data.reward);
+    load();
   }else{
     alert(data.error);
   }
