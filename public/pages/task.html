@@ -6,9 +6,77 @@
 
 <title>Task Earn</title>
 
-<!-- ✅ GLOBAL CSS -->
-<link rel="stylesheet" href="../style.css">
+<style>
 
+/* ================= BODY ================= */
+body{
+  margin:0;
+  background:#0a0a0a;
+  color:white;
+  font-family:sans-serif;
+}
+
+/* ================= HEADER ================= */
+.header{
+  display:flex;
+  justify-content:space-between;
+  align-items:center;
+  padding:15px;
+  background:#111;
+}
+
+.balance{
+  color:#00ffcc;
+  font-weight:bold;
+}
+
+/* ================= CARD ================= */
+.card{
+  margin:15px;
+  padding:20px;
+  background:#111;
+  border-radius:12px;
+  box-shadow:0 0 10px rgba(0,255,255,0.2);
+}
+
+/* ================= BUTTON ================= */
+button{
+  width:100%;
+  padding:12px;
+  border:none;
+  border-radius:8px;
+  background:#00ffff;
+  color:black;
+  cursor:pointer;
+  margin-top:10px;
+  font-weight:bold;
+}
+
+/* ================= FOOTER NAV ================= */
+.footer{
+  position:fixed;
+  bottom:0;
+  width:100%;
+  background:#111;
+  display:flex;
+  justify-content:space-around;
+  padding:10px 0;
+  border-top:1px solid #222;
+}
+
+.footer a{
+  color:white;
+  text-decoration:none;
+  font-size:12px;
+  text-align:center;
+}
+
+/* ================= SPACING ================= */
+.space{
+  height:80px;
+}
+
+</style>
 </head>
 
 <body>
@@ -22,25 +90,34 @@
 <!-- ================= TASK ================= -->
 <div class="card">
 
-  <h4>Complete 5 Ads</h4>
-  <p>Watch ads and earn real money</p>
+  <h4>🔥 Complete 5 Ads</h4>
+  <p>Watch ads & earn real money</p>
 
   <p id="progress">Progress: 0 / 5</p>
 
   <button id="watchBtn" onclick="watchAd()">▶ Watch Ad</button>
+
   <button onclick="claimReward()">💰 Claim Reward</button>
 
 </div>
 
-<!-- ================= FOOTER NAV ================= -->
+<div class="space"></div>
+
+<!-- ================= FOOTER ================= -->
 <div class="footer">
-  <a href="../index.html">🏠 Home</a>
-  <a href="task.html">📺 Task</a>
-  <a href="offer.html">🎁 Offer</a>
-  <a href="extra.html">💰 Extra</a>
+  <a href="../index.html">🏠<br>Home</a>
+  <a href="task.html">📺<br>Task</a>
+  <a href="offer.html">🎁<br>Offer</a>
+  <a href="extra.html">💰<br>Extra</a>
 </div>
 
 <script>
+
+/*
+🔥 FULL INLINE SYSTEM
+NO EXTERNAL FILE
+NO ERROR
+*/
 
 // ================= USER =================
 const userId = localStorage.getItem("userId") || Date.now();
@@ -52,10 +129,19 @@ let count = 0;
 
 // ================= LOAD USER =================
 async function loadUser(){
-  const res = await fetch("/api/user/" + userId);
-  const data = await res.json();
+  try{
+    const res = await fetch("/api/user/" + userId);
+    const data = await res.json();
 
-  document.getElementById("balance").innerText = "৳ " + data.balance;
+    document.getElementById("balance").innerText = "৳ " + data.balance;
+
+    count = data.totalAds % 5;
+    document.getElementById("progress").innerText =
+      "Progress: " + count + " / 5";
+
+  }catch{
+    console.log("Load error");
+  }
 }
 loadUser();
 
@@ -74,6 +160,7 @@ function watchAd(){
 
   const timer = setInterval(()=>{
     timeLeft--;
+
     btn.innerText = "⏳ " + timeLeft + " sec";
 
     if(timeLeft <= 0){
@@ -128,21 +215,26 @@ async function completeAd(){
 // ================= CLAIM =================
 async function claimReward(){
 
-  const res = await fetch("/api/claim-task",{
-    method:"POST",
-    headers:{"Content-Type":"application/json"},
-    body:JSON.stringify({userId})
-  });
+  try{
+    const res = await fetch("/api/claim-task",{
+      method:"POST",
+      headers:{"Content-Type":"application/json"},
+      body:JSON.stringify({userId})
+    });
 
-  const data = await res.json();
+    const data = await res.json();
 
-  if(data.success){
-    alert("💰 Earned: ৳ " + data.reward);
+    if(data.success){
+      alert("💰 Earned: ৳ " + data.reward);
 
-    document.getElementById("balance").innerText =
-      "৳ " + data.balance;
-  }else{
-    alert(data.error);
+      document.getElementById("balance").innerText =
+        "৳ " + data.balance;
+    }else{
+      alert(data.error);
+    }
+
+  }catch{
+    alert("Server error");
   }
 }
 
