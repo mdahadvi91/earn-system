@@ -65,7 +65,6 @@ body::before{
   color:#00ffcc;
   font-weight:bold;
 }
-
 /* ================= SIDEBAR ================= */
 .sidebar{
   position:fixed;
@@ -76,20 +75,29 @@ body::before{
   background:#111;
   padding:20px;
   transition:0.3s;
-  z-index:2000;
+  z-index:3000; /* 🔥 IMPORTANT FIX */
 }
 
 .sidebar.active{
   left:0;
 }
 
-.sidebar a{
-  display:block;
-  color:white;
-  padding:12px 0;
-  text-decoration:none;
-  border-bottom:1px solid #222;
+/* 🔥 overlay background */
+.overlay{
+  position:fixed;
+  top:0;
+  left:0;
+  width:100%;
+  height:100%;
+  background:rgba(0,0,0,0.6);
+  z-index:2000;
+  display:none;
 }
+
+.overlay.active{
+  display:block;
+}
+  
 
 /* ================= CARD ================= */
 .card{
@@ -167,6 +175,8 @@ body::before{
   <a href="#">History</a>
   <a href="#">Settings</a>
 </div>
+  <!-- overlay -->
+<div class="overlay" id="overlay" onclick="toggleMenu()"></div>
 
 <!-- ================= HEADER ================= -->
 <div class="header">
@@ -212,8 +222,12 @@ body::before{
 <script>
 
 /* ================= MENU ================= */
-function toggleMenu(){
-  document.getElementById("sidebar").classList.toggle("active");
+  function toggleMenu(){
+  const sidebar = document.getElementById("sidebar");
+  const overlay = document.getElementById("overlay");
+
+  sidebar.classList.toggle("active");
+  overlay.classList.toggle("active");
 }
 
 /* ================= USER ================= */
