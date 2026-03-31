@@ -1,3 +1,15 @@
+// ================= TASK CONFIG =================
+/*
+  🔥 PURPOSE:
+  Task system rules define kora
+*/
+
+const MAX_ADS_PER_DAY = 50;   // daily limit
+const ADS_PER_TASK = 5;       // 5 ads = 1 task
+const REWARD_PER_TASK = 2;    // 2 BDT per task
+const AD_TIMER = 15000;       // 15 sec
+
+
 // ================= IMPORT =================
 const express = require("express");
 const cors = require("cors");
@@ -114,3 +126,126 @@ const PORT = process.env.PORT || 3000;
 app.listen(PORT, () => {
   console.log(`🚀 Server Running on Port ${PORT}`);
 });
+
+// ================= WATCH AD =================
+/*
+  🔥 PURPOSE:
+  Ad watch track + anti-cheat check
+*/
+
+app.post("/api/watch-ad", async (req, res) => {
+  try {
+    const { userId, deviceId } = req.body;
+    const ip = req.ip;
+
+    let user = await User.findOne({ userId });
+
+    if (!user) return res.status(404).json({ error: "User not found" });
+
+    // 🚫 blocked user
+    if (user.blocked) {
+      return res.status(403).json({ error: "User blocked" });
+    }
+
+    // 🔐 device mismatch check
+    if (user.deviceId && user.deviceId !== deviceId) {
+      user.suspicious += 1;
+    }
+
+    // first time save device
+    if (!user.deviceId) {
+      user.deviceId = deviceId;
+    }
+
+    // ⏱️ timer check (anti fast click)
+    const now = Date.now();
+    if (user.lastWatch && now - user.lastWatch < AD_TIMER) {
+      user.suspicious += 1;
+      await user.save();
+      return res.status(400).json({ error: "Too fast" });
+    }
+
+    // 📊 daily limit check
+    if (user.totalAds >= MAX_ADS_PER_DAY) {
+      return res.json({ message: "Daily limit reached" });
+    }
+
+    // update
+    user.totalAds += 1;
+    user.lastWatch = now;
+    user.ip = ip;
+
+    await user.save();
+
+    res.json({
+      success: true,
+      totalAds: user.totalAds
+    });
+
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({ error: "Server error" });
+  }
+});
+
+// ================= CLAIM TASK =================
+/*
+  🔥 PURPOSE:
+  5 ads complete hole reward add kora
+*/
+
+app.post("/api/claim-task", async (req, res) => {
+  try {
+    const { userId } = req.body;
+
+    let user = await User.findOne({ userId });
+
+    if (!user) return res.status(404).json({ error: "User not found" });
+
+    // check ads
+    if (user.totalAds < ADS_PER_TASK) {
+      return res.status(400).json({ error: "Not enough ads" });
+    }
+
+    // prevent duplicate claim
+    const taskIndex = Math.floor(user.totalAds / ADS_PER_TASK);
+
+    if (user.claimedTasks.includes(taskIndex)) {
+      return res.status(400).json({ error: "Already claimed" });
+    }
+
+    // 💰 reward calculation (60%)
+    const reward = REWARD_PER_TASK * 0.6;
+
+    user.balance += reward;
+    user.claimedTasks.push(taskIndex);
+
+    await user.save();
+
+    res.json({
+      success: true,
+      reward,
+      balance: user.balance
+    });
+
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({ error: "Server error" });
+  }
+});
+
+// ================= DAILY RESET =================
+/*
+  🔥 PURPOSE:
+  protidin ads count reset
+*/
+
+setInterval(async () => {
+  console.log("🔄 Daily reset running...");
+
+  await User.updateMany({}, {
+    totalAds: 0,
+    claimedTasks: []
+  });
+
+}, 1000 * 60 * 60 * 24); // 24 hour
