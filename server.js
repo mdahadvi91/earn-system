@@ -1,8 +1,6 @@
-// ================= CONFIG =================
-const MAX_ADS_PER_DAY = 50;        // দিনে সর্বোচ্চ অ্যাড
-const ADS_PER_TASK = 5;            // ৫টা অ্যাড = ১টা টাস্ক
-const REWARD_PER_TASK = 2;         // প্রতি টাস্কে ২ টাকা
-const AD_TIMER = 15000;            // ১৫ সেকেন্ড অপেক্ষা
+// ================= SERVER.JS =================
+// এই ফাইল হলো আমাদের ওয়েবসাইটের মেইন সার্ভার
+// সবকিছু এখান থেকে চালু হয় — Express, MongoDB, Routes, Anti-Fraud
 
 // ================= IMPORT =================
 const express = require("express");
@@ -12,57 +10,80 @@ const mongoose = require("mongoose");
 const helmet = require("helmet");
 require("dotenv").config();
 
+// নতুন ফাইলগুলো import করা হচ্ছে
+const { helmet: helmetMiddleware, apiLimiter, deviceFraudMiddleware } = require('./middleware');
+const config = require('./config');
+
 const app = express();
 
 // ================= SAFETY =================
-process.on("uncaughtException", err => {
-  console.error("❌ Uncaught Exception:", err);
-});
-process.on("unhandledRejection", err => {
-  console.error("❌ Unhandled Rejection:", err);
-});
+// সার্ভারে কোনো সমস্যা হলে লগ দেখার জন্য
+process.on("uncaughtException", err => console.error("❌ Uncaught Exception:", err));
+process.on("unhandledRejection", err => console.error("❌ Unhandled Rejection:", err));
 
 // ================= MIDDLEWARE =================
-app.use(helmet());                    // Security header
+// সিকিউরিটি এবং রেট লিমিট সেট করা হচ্ছে
+app.use(helmetMiddleware);           // সিকিউরিটি হেডার যোগ করে
+app.use(apiLimiter);                 // অনেক রিকোয়েস্ট থেকে বাঁচায়
 app.use(cors());
 app.use(express.json());
+
+// Static ফাইল সার্ভ করার জন্য (HTML, CSS, JS)
 app.use(express.static(path.join(__dirname, "public")));
 
-// ================= DB CONNECT =================
-mongoose.connect(process.env.MONGO_URI)
+// ================= MONGO DB CONNECT =================
+// ডাটাবেসের সাথে কানেকশন
+mongoose.connect(config.MONGO_URI)
   .then(() => console.log("✅ MongoDB Connected Successfully"))
   .catch(err => {
     console.error("❌ MongoDB Connection Error:", err);
     process.exit(1);
   });
 
-// ================= USER MODEL (Anti-Fraud Added) =================
+// ================= USER MODEL =================
+// ইউজারের তথ্য স্টোর করার জন্য মডেল
+// deviceId দিয়ে anti-fraud করা হয়
 const UserSchema = new mongoose.Schema({
-  userId: { type: String, required: true, unique: true },
-  balance: { type: Number, default: 0 },
-  totalAds: { type: Number, default: 0 },
-  claimedTasks: { type: [Number], default: [] },
+  userId: { 
+    type: String, 
+    required: true, 
+    unique: true 
+  },
+  balance: { 
+    type: Number, 
+    default: 0 
+  },
+  totalEarned: { 
+    type: Number, 
+    default: 0 
+  },
   
   // Anti-Fraud Fields
-  deviceId: { type: String, index: true },           // FingerprintJS থেকে আসবে
+  deviceId: { 
+    type: String, 
+    index: true 
+  },
   lastIP: String,
   lastLogin: Date,
-  createdAt: { type: Date, default: Date.now },
-  totalEarned: { type: Number, default: 0 }
+  createdAt: { 
+    type: Date, 
+    default: Date.now 
+  }
 });
 
 const User = mongoose.model("User", UserSchema);
 
-// ================= HELPER: Anti-Fraud Check =================
-async function checkDeviceFraud(deviceId, ip, userId = null) {
+// ================= ANTI-FRAUD HELPER =================
+// একই ডিভাইসে একাধিক অ্যাকাউন্ট তৈরি করতে না দেওয়ার চেক
+async function checkDeviceFraud(deviceId, currentUserId = null) {
   if (!deviceId) return { allowed: true };
 
-  const existing = await User.findOne({ deviceId });
+  const existingUser = await User.findOne({ deviceId: deviceId });
   
-  if (existing && existing.userId !== userId) {
+  if (existingUser && existingUser.userId !== currentUserId) {
     return { 
       allowed: false, 
-      message: "এই ডিভাইস দিয়ে ইতিমধ্যে একটি অ্যাকাউন্ট তৈরি করা হয়েছে। একই ডিভাইসে একাধিক অ্যাকাউন্ট অনুমোদিত নয়।" 
+      message: "এই ডিভাইস দিয়ে ইতিমধ্যে একটি অ্যাকাউন্ট তৈরি করা আছে। একই ডিভাইসে একাধিক অ্যাকাউন্ট চলবে না।" 
     };
   }
   return { allowed: true };
@@ -80,19 +101,22 @@ app.get("/task", (req, res) => {
   res.sendFile(path.join(__dirname, "public/pages/task.html"));
 });
 
-// Health Check (Render.com এর জন্য ভালো)
-app.get("/health", (req, res) => res.status(200).send("OK"));
+// Health Check
+app.get("/health", (req, res) => res.status(200).send("Server is Healthy"));
 
-// ================= CREATE / GET USER =================
-app.post("/api/create-user", async (req, res) => {
+// ================= CREATE / LOGIN USER =================
+// ইউজার তৈরি বা লগইন — Device ID চেক সহ
+app.post("/api/user", async (req, res) => {
   try {
-    const { userId, deviceId, ip } = req.body;
+    const { userId, deviceId } = req.body;
+    const ip = req.ip || req.headers['x-forwarded-for'];
 
     if (!userId || !deviceId) {
-      return res.status(400).json({ error: "userId এবং deviceId দরকার" });
+      return res.status(400).json({ error: "userId এবং deviceId দিতে হবে" });
     }
 
-    const fraudCheck = await checkDeviceFraud(deviceId, ip, userId);
+    // Anti-Fraud চেক
+    const fraudCheck = await checkDeviceFraud(deviceId, userId);
     if (!fraudCheck.allowed) {
       return res.status(403).json({ error: fraudCheck.message });
     }
@@ -103,119 +127,55 @@ app.post("/api/create-user", async (req, res) => {
       user = await User.create({
         userId,
         deviceId,
-        lastIP: ip || req.ip,
+        lastIP: ip,
         lastLogin: new Date()
       });
-      console.log(`✅ New User Created: ${userId}`);
+      console.log(`✅ নতুন ইউজার তৈরি হয়েছে: ${userId}`);
     } else {
-      // Existing user-এর device check
       if (user.deviceId && user.deviceId !== deviceId) {
         return res.status(403).json({ error: "এই অ্যাকাউন্ট অন্য ডিভাইসে লগইন করা আছে।" });
       }
       user.deviceId = deviceId;
-      user.lastIP = ip || req.ip;
+      user.lastIP = ip;
       user.lastLogin = new Date();
       await user.save();
     }
 
-    res.json({ success: true, user });
-  } catch (err) {
-    console.error(err);
-    res.status(500).json({ error: "Server error" });
-  }
-});
-
-// ================= WATCH AD (Anti-Fraud + Timer) =================
-app.post("/api/watch-ad", async (req, res) => {
-  try {
-    const { userId, deviceId } = req.body;
-
-    if (!userId || !deviceId) {
-      return res.status(400).json({ error: "Missing userId or deviceId" });
-    }
-
-    let user = await User.findOne({ userId });
-    if (!user) return res.status(404).json({ error: "User not found" });
-
-    // Device Check
-    if (user.deviceId && user.deviceId !== deviceId) {
-      return res.status(403).json({ error: "ডিভাইস মিলছে না। অন্য ডিভাইস থেকে লগইন করা আছে।" });
-    }
-
-    const now = Date.now();
-
-    // Fast click protection
-    if (user.lastWatch && now - user.lastWatch < AD_TIMER) {
-      return res.status(429).json({ error: `অপেক্ষা করুন ${Math.ceil((AD_TIMER - (now - user.lastWatch))/1000)} সেকেন্ড` });
-    }
-
-    // Daily limit
-    if (user.totalAds >= MAX_ADS_PER_DAY) {
-      return res.json({ message: "আজকের অ্যাড লিমিট শেষ হয়েছে। কাল আবার চেষ্টা করুন।" });
-    }
-
-    // Update
-    user.totalAds += 1;
-    user.lastWatch = now;
-    user.deviceId = deviceId;
-
-    await user.save();
-
     res.json({ 
       success: true, 
-      totalAds: user.totalAds,
-      message: "Ad watched successfully" 
+      user: {
+        userId: user.userId,
+        balance: user.balance,
+        totalEarned: user.totalEarned
+      }
     });
 
   } catch (err) {
     console.error(err);
-    res.status(500).json({ error: "Server error" });
+    res.status(500).json({ error: "সার্ভারে সমস্যা হয়েছে" });
   }
 });
 
-// ================= CLAIM TASK =================
-app.post("/api/claim-task", async (req, res) => {
+// ================= GET USER BALANCE =================
+app.get("/api/user/:userId", async (req, res) => {
   try {
-    const { userId } = req.body;
-
-    let user = await User.findOne({ userId });
+    const user = await User.findOne({ userId: req.params.userId });
     if (!user) return res.status(404).json({ error: "User not found" });
 
-    if (user.totalAds < ADS_PER_TASK) {
-      return res.status(400).json({ error: `প্রথমে ${ADS_PER_TASK}টা অ্যাড দেখুন` });
-    }
-
-    const taskIndex = Math.floor((user.totalAds - 1) / ADS_PER_TASK);
-
-    if (user.claimedTasks.includes(taskIndex)) {
-      return res.status(400).json({ error: "এই টাস্ক ইতিমধ্যে ক্লেইম করা হয়েছে" });
-    }
-
-    const reward = REWARD_PER_TASK;
-
-    user.balance += reward;
-    user.totalEarned += reward;
-    user.claimedTasks.push(taskIndex);
-
-    await user.save();
-
-    res.json({ 
-      success: true, 
-      reward, 
-      newBalance: user.balance,
-      message: `${reward} টাকা আপনার ব্যালেন্সে যোগ হয়েছে` 
+    res.json({
+      success: true,
+      balance: user.balance,
+      totalEarned: user.totalEarned
     });
-
   } catch (err) {
-    console.error(err);
     res.status(500).json({ error: "Server error" });
   }
 });
 
 // ================= SERVER START =================
-const PORT = process.env.PORT || 10000;
+const PORT = config.PORT;
 
 app.listen(PORT, () => {
-  console.log(`🚀 Server is running on port ${PORT}`);
-  console.log("Anti-Fraud + Device ID system active");
+  console.log(`🚀 Server running on port ${PORT}`);
+  console.log("✅ Clean Server with Device Anti-Fraud Ready");
 });
