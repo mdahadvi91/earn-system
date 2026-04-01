@@ -1,0 +1,212 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>RealEarn - Earn Real Money Daily</title>
+  <style>
+    @import url('https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700&display=swap');
+    
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    body {
+      font-family: 'Poppins', sans-serif;
+      background: linear-gradient(135deg, #0f0f23, #1a0033);
+      color: white;
+      line-height: 1.6;
+    }
+
+    header {
+      background: rgba(0,0,0,0.7);
+      padding: 20px 40px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      position: sticky;
+      top: 0;
+      z-index: 100;
+    }
+    .logo {
+      font-size: 28px;
+      font-weight: 700;
+      color: #ff8800;
+    }
+
+    .hero {
+      text-align: center;
+      padding: 100px 20px 80px;
+    }
+    .hero h1 {
+      font-size: 48px;
+      margin-bottom: 20px;
+    }
+    .hero p {
+      font-size: 22px;
+      max-width: 700px;
+      margin: 0 auto 40px;
+      opacity: 0.9;
+    }
+    .btn-start {
+      background: linear-gradient(90deg, #ff4d00, #ffaa00);
+      color: white;
+      padding: 18px 60px;
+      font-size: 20px;
+      font-weight: 700;
+      border: none;
+      border-radius: 50px;
+      cursor: pointer;
+      box-shadow: 0 10px 30px rgba(255, 136, 0, 0.4);
+    }
+
+    .trusted {
+      text-align: center;
+      padding: 60px 20px;
+      background: rgba(255,255,255,0.05);
+    }
+    .trusted h2 {
+      margin-bottom: 30px;
+      font-size: 28px;
+    }
+    .networks {
+      display: flex;
+      flex-wrap: wrap;
+      justify-content: center;
+      gap: 25px;
+      font-size: 18px;
+      font-weight: 500;
+    }
+    .network-item {
+      background: rgba(255,255,255,0.1);
+      padding: 12px 25px;
+      border-radius: 50px;
+      white-space: nowrap;
+    }
+
+    .how-it-works {
+      padding: 80px 20px;
+      text-align: center;
+    }
+    .steps {
+      display: flex;
+      flex-wrap: wrap;
+      justify-content: center;
+      gap: 40px;
+      margin-top: 50px;
+    }
+    .step {
+      background: rgba(255,255,255,0.08);
+      padding: 30px 25px;
+      border-radius: 20px;
+      width: 280px;
+    }
+
+    footer {
+      background: #0a0a0a;
+      padding: 60px 40px 30px;
+      text-align: center;
+    }
+    .footer-links {
+      display: flex;
+      justify-content: center;
+      gap: 30px;
+      margin-bottom: 40px;
+      flex-wrap: wrap;
+    }
+    .footer-links a {
+      color: #ccc;
+      text-decoration: none;
+      font-size: 16px;
+    }
+    .footer-links a:hover { color: #ff8800; }
+
+    .footer-bottom {
+      border-top: 1px solid #333;
+      padding-top: 20px;
+      font-size: 14px;
+      opacity: 0.7;
+    }
+  </style>
+</head>
+<body>
+
+  <header>
+    <div class="logo">RealEarn</div>
+    <div>
+      <a href="/login.html" style="color:white; margin-right:25px; text-decoration:none;">Login</a>
+      <a href="/login.html" style="background:#ff8800; color:white; padding:10px 25px; border-radius:50px; text-decoration:none;">Join Now</a>
+    </div>
+  </header>
+
+  <!-- Hero Section -->
+  <div class="hero">
+    <h1>Earn Real Money Every Day</h1>
+    <p>Watch ads, install apps, complete tasks and get paid instantly.<br>
+    Trusted by thousands of users worldwide.</p>
+    <button class="btn-start" onclick="goToTask()">Start Earning Now →</button>
+  </div>
+
+  <!-- Trusted Networks -->
+  <div class="trusted">
+    <h2>Trusted By Leading Ad Networks</h2>
+    <div class="networks">
+      <div class="network-item">Adsterra</div>
+      <div class="network-item">Monetag</div>
+      <div class="network-item">CMP Grip</div>
+      <div class="network-item">WannaAds</div>
+      <div class="network-item">Google AdMob</div>
+      <div class="network-item">PropellerAds</div>
+      <div class="network-item">PopAds</div>
+      <div class="network-item">HilltopAds</div>
+      <div class="network-item">RevenueHits</div>
+      <div class="network-item">Clickadu</div>
+      <div class="network-item">EvaDav</div>
+      <div class="network-item">Bidvertiser</div>
+      <div class="network-item">Infolinks</div>
+      <div class="network-item">Skimlinks</div>
+      <div class="network-item">Amazon Associates</div>
+      <!-- আরও যোগ করা যাবে -->
+    </div>
+    <p style="margin-top:30px; opacity:0.8;">50+ Premium Ad Networks • 100% Real Payouts</p>
+  </div>
+
+  <!-- How It Works -->
+  <div class="how-it-works">
+    <h2>How It Works</h2>
+    <div class="steps">
+      <div class="step">
+        <h3>1. Sign Up</h3>
+        <p>Create your free account in 30 seconds</p>
+      </div>
+      <div class="step">
+        <h3>2. Complete Tasks</h3>
+        <p>Watch ads, install apps, do surveys</p>
+      </div>
+      <div class="step">
+        <h3>3. Earn Real Money</h3>
+        <p>Get paid via PayPal, Crypto, bKash & more</p>
+      </div>
+    </div>
+  </div>
+
+  <!-- Footer -->
+  <footer>
+    <div class="footer-links">
+      <a href="#">About Us</a>
+      <a href="#">Contact</a>
+      <a href="#">Terms & Conditions</a>
+      <a href="#">Privacy Policy</a>
+      <a href="#">FAQ</a>
+    </div>
+    
+    <div class="footer-bottom">
+      © 2026 RealEarn. All Rights Reserved.<br>
+      100% Real Earning Platform • No Fake Tasks • Transparent Payments
+    </div>
+  </footer>
+
+  <script>
+    function goToTask() {
+      window.location.href = "/task";
+    }
+  </script>
+</body>
+</html>
