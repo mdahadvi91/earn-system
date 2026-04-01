@@ -1,0 +1,269 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>RealEarn - Login</title>
+  <style>
+    @import url('https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700&display=swap');
+
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    body {
+      font-family: 'Poppins', sans-serif;
+      background: #0f0f0f;
+      min-height: 100vh;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+
+    .card {
+      width: 100%;
+      max-width: 420px;
+      background: #1a1a1a;
+      border-radius: 20px;
+      overflow: hidden;
+      box-shadow: 0 20px 40px rgba(0,0,0,0.6);
+      position: relative;
+    }
+
+    /* Orange Glow Background */
+    .glow {
+      position: absolute;
+      top: 0; left: 0; right: 0; bottom: 0;
+      background: linear-gradient(135deg, #ff4d00, #ffaa00);
+      opacity: 0.15;
+      z-index: 1;
+    }
+
+    .content {
+      position: relative;
+      z-index: 2;
+      padding: 40px 30px;
+    }
+
+    h1 {
+      color: white;
+      font-size: 28px;
+      margin-bottom: 8px;
+    }
+    p {
+      color: #aaa;
+      font-size: 15px;
+      margin-bottom: 30px;
+    }
+
+    /* Forms Container */
+    .forms-container {
+      position: relative;
+      height: 380px;
+    }
+
+    .form {
+      position: absolute;
+      width: 100%;
+      transition: all 0.8s cubic-bezier(0.68, -0.55, 0.27, 1.55);
+      opacity: 0;
+      transform: translateX(120%);
+    }
+
+    .form.active {
+      opacity: 1;
+      transform: translateX(0);
+    }
+
+    input {
+      width: 100%;
+      padding: 16px 18px;
+      margin: 12px 0;
+      background: #2a2a2a;
+      border: none;
+      border-radius: 12px;
+      color: white;
+      font-size: 15px;
+    }
+    input::placeholder { color: #777; }
+
+    .btn {
+      width: 100%;
+      padding: 16px;
+      border: none;
+      border-radius: 12px;
+      font-size: 16px;
+      font-weight: 600;
+      margin-top: 10px;
+      cursor: pointer;
+    }
+    .btn-primary {
+      background: linear-gradient(90deg, #ff4d00, #ff8800);
+      color: white;
+    }
+    .btn-google {
+      background: white;
+      color: #333;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 10px;
+    }
+
+    .switch-text {
+      text-align: center;
+      margin-top: 20px;
+      color: #aaa;
+    }
+    .switch-text span {
+      color: #ff8800;
+      cursor: pointer;
+      font-weight: 500;
+    }
+
+    /* Loader */
+    .loader {
+      position: fixed;
+      top: 0; left: 0; right: 0; bottom: 0;
+      background: rgba(0,0,0,0.97);
+      display: none;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      z-index: 9999;
+    }
+    .circle {
+      width: 120px;
+      height: 120px;
+      border: 10px solid #333;
+      border-top: 10px solid #ff8800;
+      border-radius: 50%;
+      animation: spin 1.2s linear infinite;
+    }
+    .percent {
+      margin-top: 20px;
+      font-size: 42px;
+      font-weight: 700;
+      color: #ff8800;
+    }
+  </style>
+</head>
+<body>
+
+  <div class="card">
+    <div class="glow"></div>
+    <div class="content">
+
+      <h1 id="title">Welcome Back!</h1>
+      <p id="subtitle">Sign in to continue earning real money</p>
+
+      <div class="forms-container">
+
+        <!-- Login Form -->
+        <div class="form active" id="loginForm">
+          <input type="text" id="loginUser" placeholder="Username or Email" value="test@gmail.com">
+          <input type="password" id="loginPass" placeholder="Password" value="123456">
+          <button class="btn btn-primary" onclick="handleSubmit('login')">Login</button>
+          <div class="switch-text">
+            Don't have an account? <span onclick="switchForm(1)">Sign Up</span>
+          </div>
+        </div>
+
+        <!-- Register Form -->
+        <div class="form" id="registerForm">
+          <input type="text" id="regName" placeholder="Full Name">
+          <input type="email" id="regEmail" placeholder="Email" value="test@gmail.com">
+          <input type="password" id="regPass" placeholder="Password" value="123456">
+          <button class="btn btn-primary" onclick="handleSubmit('register')">Register</button>
+          <div class="switch-text">
+            Already have an account? <span onclick="switchForm(0)">Sign In</span>
+          </div>
+        </div>
+
+      </div>
+
+      <!-- Google Button -->
+      <button class="btn btn-google" onclick="googleLogin()">
+        <span style="font-size:22px;">G</span> Continue with Google
+      </button>
+
+    </div>
+  </div>
+
+  <!-- Loader -->
+  <div class="loader" id="loader">
+    <div class="circle"></div>
+    <div class="percent" id="percentText">0%</div>
+    <p style="color:#888; margin-top:10px;">VERIFYING YOUR ACCOUNT...</p>
+  </div>
+
+  <script>
+    let isLogin = true;
+
+    function switchForm(toRegister) {
+      isLogin = !toRegister;
+
+      const loginForm = document.getElementById('loginForm');
+      const registerForm = document.getElementById('registerForm');
+      const title = document.getElementById('title');
+      const subtitle = document.getElementById('subtitle');
+
+      if (toRegister) {
+        loginForm.classList.remove('active');
+        registerForm.classList.add('active');
+        title.textContent = "Create Account";
+        subtitle.textContent = "Join thousands earning daily";
+      } else {
+        registerForm.classList.remove('active');
+        loginForm.classList.add('active');
+        title.textContent = "Welcome Back!";
+        subtitle.textContent = "Sign in to continue earning real money";
+      }
+    }
+
+    async function handleSubmit(type) {
+      // Simple test credentials check
+      if (type === 'login') {
+        const user = document.getElementById('loginUser').value;
+        const pass = document.getElementById('loginPass').value;
+        if (user === "test@gmail.com" && pass === "123456") {
+          showLoader();
+        } else {
+          alert("Wrong credentials! Use test@gmail.com / 123456");
+        }
+      } else {
+        showLoader();
+      }
+    }
+
+    function googleLogin() {
+      alert("Google Login Successful!");
+      showLoader();
+    }
+
+    function showLoader() {
+      document.querySelector('.card').style.opacity = "0.3";
+      const loader = document.getElementById('loader');
+      loader.style.display = "flex";
+
+      let percent = 0;
+      const percentText = document.getElementById('percentText');
+
+      const interval = setInterval(() => {
+        percent += Math.random() * 14 + 6;
+        if (percent > 100) percent = 100;
+        percentText.textContent = Math.floor(percent) + "%";
+
+        if (percent >= 100) {
+          clearInterval(interval);
+          setTimeout(() => {
+            window.location.href = "/";  // Go to homepage
+          }, 800);
+        }
+      }, 90);
+    }
+
+    // Auto fill test credentials on load
+    window.onload = () => {
+      // Already pre-filled in HTML
+    };
+  </script>
+</body>
+</html>
