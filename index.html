@@ -125,10 +125,12 @@
         Trusted by <span style="color:#ffcc00;">50+ Million</span> People Worldwide
       </div>
       
-      <!-- Fixed Button -->
-      <button class="btn-start" onclick="window.location.href='login.html'">
+      <!-- ================== START EARNING BUTTON ================== -->
+      <!-- এই বাটনে ক্লিক করলে login.html এ যাবে -->
+      <button class="btn-start" onclick="window.location.href='/login.html'">
         Start Earning Now →
       </button>
+      <!-- ======================================================== -->
       
       <p style="margin-top: 55px; font-size: 1.2rem; opacity: 0.85;">
         ✅ No Investment • 100% Real Earnings • Instant Withdraw
@@ -148,7 +150,7 @@
   </div>
 
   <script>
-    // Three.js Advanced Background
+    // ================== THREE.JS BACKGROUND ANIMATION ==================
     let scene, camera, renderer, composer;
     let grid, coins = [], particles;
     let mouse = new THREE.Vector2();
@@ -169,14 +171,14 @@
       const bloomPass = new THREE.UnrealBloomPass(new THREE.Vector2(window.innerWidth, window.innerHeight), 1.8, 0.5, 0.8);
       composer.addPass(bloomPass);
 
-      // Grid
+      // Neon Grid
       const gridGeo = new THREE.PlaneGeometry(75, 75, 55, 55);
       const gridMat = new THREE.MeshBasicMaterial({ color: 0x00ffff, wireframe: true, transparent: true, opacity: 0.26, blending: THREE.AdditiveBlending });
       grid = new THREE.Mesh(gridGeo, gridMat);
       grid.rotation.x = -Math.PI * 0.47;
       scene.add(grid);
 
-      // Coins
+      // Floating Coins
       const coinGeo = new THREE.CylinderGeometry(1.5, 1.5, 0.4, 48);
       const coinMat = new THREE.MeshPhongMaterial({ color: 0xffee66, emissive: 0xff8800, emissiveIntensity: 1.1 });
       for (let i = 0; i < 35; i++) {
