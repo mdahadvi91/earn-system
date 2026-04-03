@@ -203,7 +203,6 @@
       measurementId: "G-WPH8TW221C"
     };
 
-    // Initialize Firebase
     firebase.initializeApp(firebaseConfig);
     const auth = firebase.auth();
 
@@ -229,7 +228,6 @@
       }
     }
 
-    // Email Login
     async function handleEmailLogin() {
       const email = document.getElementById('loginUser').value.trim();
       const pass = document.getElementById('loginPass').value.trim();
@@ -243,7 +241,6 @@
       }
     }
 
-    // Email Register
     async function handleEmailRegister() {
       const name = document.getElementById('regName').value.trim();
       const email = document.getElementById('regEmail').value.trim();
@@ -258,7 +255,6 @@
       }
     }
 
-    // Google Sign In with Logic
     async function signInWithGoogle(formType) {
       const provider = new firebase.auth.GoogleAuthProvider();
 
@@ -269,7 +265,7 @@
         if (formType === 'login' && isNewUser) {
           await auth.signOut();
           alert("No account found!\nPlease Sign Up first.");
-          switchForm(1); // Switch to Register form
+          switchForm(1);
           return;
         }
 
@@ -298,17 +294,14 @@
         if (percent >= 100) {
           clearInterval(interval);
           setTimeout(() => {
-            window.location.href = "index.html";   // Go back to homepage
+            window.location.href = "index.html";
           }, 700);
         }
       }, 80);
     }
 
-    // Optional: Check if user is already logged in
     auth.onAuthStateChanged(user => {
-      if (user) {
-        console.log("User already logged in:", user.email);
-      }
+      if (user) console.log("User already logged in:", user.email);
     });
   </script>
 </body>
