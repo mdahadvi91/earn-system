@@ -29,7 +29,7 @@ app.use(cors());
 app.use(express.json());
 
 // Static ফাইল সার্ভ করার জন্য (HTML, CSS, JS)
-app.use(express.static(path.join(__dirname, "public")));
+app.uapp.use(express.static(__dirname));
 
 // ================= MONGO DB CONNECT =================
 // ডাটাবেসের সাথে কানেকশন
@@ -93,12 +93,12 @@ async function checkDeviceFraud(deviceId, currentUserId = null) {
 
 // Home Page
 app.get("/", (req, res) => {
-  res.sendFile(path.join(__dirname, "public/index.html"));
+  res.sendFile(path.join(__dirname, "index.html"));
 });
 
 // Task Page
 app.get("/task", (req, res) => {
-  res.sendFile(path.join(__dirname, "public/pages/task.html"));
+  res.sendFile(path.join(__dirname, "pages/task.html"));
 });
 
 // Health Check
