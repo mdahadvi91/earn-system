@@ -5,7 +5,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>RealEarn - Login</title>
 
-  <!-- Firebase SDK (modular v10+) -->
+  <!-- Firebase SDK -->
   <script src="https://www.gstatic.com/firebasejs/10.14.1/firebase-app-compat.js"></script>
   <script src="https://www.gstatic.com/firebasejs/10.14.1/firebase-auth-compat.js"></script>
 
@@ -188,25 +188,26 @@
   <div class="loader" id="loader">
     <div class="circle"></div>
     <div class="percent" id="percentText">0%</div>
-    <p style="color:#888; margin-top:10px;">VERIFYING...</p>
+    <p style="color:#888; margin-top:10px;">VERIFYING YOUR ACCOUNT...</p>
   </div>
 
   <script>
-    // ================== Firebase Config ==================
-    // এখানে তোমার Firebase Config বসাও (Firebase Console > Project Settings > SDK setup)
+    // ================== YOUR FIREBASE CONFIG ==================
     const firebaseConfig = {
-      apiKey: "YOUR_API_KEY",
-      authDomain: "YOUR_PROJECT_ID.firebaseapp.com",
-      projectId: "YOUR_PROJECT_ID",
-      storageBucket: "YOUR_PROJECT_ID.appspot.com",
-      messagingSenderId: "123456789",
-      appId: "YOUR_APP_ID"
+      apiKey: "AIzaSyCvhGuyx6ZSrimCjk2G2Q9pdoihvjb3Hms",
+      authDomain: "realearn-app.firebaseapp.com",
+      projectId: "realearn-app",
+      storageBucket: "realearn-app.firebasestorage.app",
+      messagingSenderId: "241034846565",
+      appId: "1:241034846565:web:26f6da801689f429f9018c",
+      measurementId: "G-WPH8TW221C"
     };
 
+    // Initialize Firebase
     firebase.initializeApp(firebaseConfig);
     const auth = firebase.auth();
 
-    let currentForm = 'login'; // 'login' or 'register'
+    let currentForm = 'login';
 
     function switchForm(toRegister) {
       currentForm = toRegister ? 'register' : 'login';
@@ -230,8 +231,8 @@
 
     // Email Login
     async function handleEmailLogin() {
-      const email = document.getElementById('loginUser').value;
-      const pass = document.getElementById('loginPass').value;
+      const email = document.getElementById('loginUser').value.trim();
+      const pass = document.getElementById('loginPass').value.trim();
       if (!email || !pass) return alert("Please fill all fields");
 
       try {
@@ -244,41 +245,35 @@
 
     // Email Register
     async function handleEmailRegister() {
-      const name = document.getElementById('regName').value;
-      const email = document.getElementById('regEmail').value;
-      const pass = document.getElementById('regPass').value;
+      const name = document.getElementById('regName').value.trim();
+      const email = document.getElementById('regEmail').value.trim();
+      const pass = document.getElementById('regPass').value.trim();
       if (!name || !email || !pass) return alert("Please fill all fields");
 
       try {
         await auth.createUserWithEmailAndPassword(email, pass);
-        // Optional: Save name to database later
         showLoaderAndRedirect();
       } catch (error) {
         alert("Registration failed: " + error.message);
       }
     }
 
-    // Google Sign In (with logic)
+    // Google Sign In with Logic
     async function signInWithGoogle(formType) {
       const provider = new firebase.auth.GoogleAuthProvider();
 
       try {
         const result = await auth.signInWithPopup(provider);
-        const user = result.user;
-
-        // New user check (isNewUser)
         const isNewUser = result.additionalUserInfo.isNewUser;
 
         if (formType === 'login' && isNewUser) {
-          // New user trying to login directly → force sign up first
-          await auth.signOut(); // logout immediately
-          alert("No account found! Please Sign Up first using Google or Email.");
-          switchForm(1); // go to register form
+          await auth.signOut();
+          alert("No account found!\nPlease Sign Up first.");
+          switchForm(1); // Switch to Register form
           return;
         }
 
-        // Success
-        console.log("Google Sign In Success", user);
+        console.log("✅ Google Sign In Successful", result.user);
         showLoaderAndRedirect();
 
       } catch (error) {
@@ -303,16 +298,16 @@
         if (percent >= 100) {
           clearInterval(interval);
           setTimeout(() => {
-            window.location.href = "index.html"; // or your dashboard
-          }, 600);
+            window.location.href = "index.html";   // Go back to homepage
+          }, 700);
         }
       }, 80);
     }
 
-    // Listen to auth state (optional)
+    // Optional: Check if user is already logged in
     auth.onAuthStateChanged(user => {
       if (user) {
-        console.log("User is signed in:", user.email);
+        console.log("User already logged in:", user.email);
       }
     });
   </script>
