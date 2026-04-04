@@ -3,10 +3,9 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-
 <title>RealEarn - Start Earning</title>
 
-<link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@300;600;700&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@300;600;800&display=swap" rel="stylesheet">
 <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r134/three.min.js"></script>
 
 <style>
@@ -15,31 +14,22 @@
 body{
 height:100vh;
 background:
-linear-gradient(rgba(0,0,0,0.55),rgba(0,0,0,0.65)),
+linear-gradient(rgba(0,0,0,0.5),rgba(0,0,0,0.6)),
 url('https://images.unsplash.com/photo-1507525428034-b723cf961d3e')
 no-repeat center/cover;
 overflow:hidden;
 color:white;
 }
 
-/* ===== NAVBAR (SAME AS HOME) ===== */
-.navbar{
-position:fixed;top:15px;left:50%;transform:translateX(-50%);
-width:92%;max-width:720px;
-display:flex;justify-content:space-between;
-padding:16px 25px;border-radius:40px;
-background:rgba(255,255,255,0.15);
-backdrop-filter:blur(20px);
-z-index:10;
+/* PARTICLE */
+canvas{
+position:fixed;
+top:0;left:0;
+width:100%;height:100%;
+pointer-events:none;
 }
 
-.navbar a{
-color:white;font-size:18px;font-weight:700;
-text-decoration:none;
-display:flex;align-items:center;gap:6px;
-}
-
-/* ===== HERO ===== */
+/* MAIN */
 .hero{
 height:100vh;
 display:flex;
@@ -49,135 +39,101 @@ text-align:center;
 padding:20px;
 }
 
-.hero-box{
+/* GLASS BOX */
+.box{
 background:rgba(255,255,255,0.08);
-backdrop-filter:blur(15px);
-border-radius:25px;
-padding:30px;
+backdrop-filter:blur(20px);
+border-radius:30px;
+padding:40px 25px;
 max-width:700px;
-width:92%;
+width:100%;
+box-shadow:0 20px 60px rgba(0,0,0,0.6);
 }
 
-/* TITLE */
-.hero h1{
+/* TEXT */
+h1{
 font-size:38px;
+font-weight:800;
 margin-bottom:15px;
-font-weight:700;
 }
 
-/* SUB */
-.hero p{
+p{
 font-size:16px;
-opacity:0.9;
+color:#ddd;
 margin-bottom:25px;
 }
 
-/* BUTTON (GRID STYLE MATCH) */
-.start-btn{
-position:relative;
-padding:18px 40px;
-font-size:18px;
-font-weight:700;
-border-radius:20px;
-cursor:pointer;
+/* BUTTON */
+.btn{
+background:linear-gradient(90deg,#ff4d00,#ff8800);
+padding:16px 40px;
 border:none;
+border-radius:40px;
+font-size:18px;
+font-weight:600;
 color:white;
-background:transparent;
-overflow:hidden;
+cursor:pointer;
+transition:0.3s;
 }
 
-/* ELECTRIC BORDER SAME AS CARD */
-.start-btn::before{
-content:'';
-position:absolute;
-inset:0;
-border-radius:20px;
-padding:2px;
-background:linear-gradient(90deg,cyan,lime,orange,cyan);
-background-size:300%;
--webkit-mask:
-linear-gradient(#000 0 0) content-box,
-linear-gradient(#000 0 0);
--webkit-mask-composite:xor;
-mask-composite:exclude;
-animation:borderMove 3s linear infinite;
+.btn:hover{
+transform:scale(1.08);
 }
 
-@keyframes borderMove{
-0%{background-position:0%}
-100%{background-position:300%}
-}
-
-/* ===== FOOTER (SAME AS HOME) ===== */
+/* FOOTER */
 footer{
-position:fixed;bottom:0;width:100%;
-padding:12px;text-align:center;
+position:fixed;
+bottom:0;
+width:100%;
+padding:12px;
+text-align:center;
+color:white;
 background:rgba(0,0,0,0.35);
 }
 
 .footer-menu{
-display:flex;justify-content:space-around;margin-bottom:6px;
+display:flex;
+justify-content:space-around;
+margin-bottom:6px;
 }
 
-.footer-menu a{
-color:white;text-decoration:none;font-size:14px;
-display:flex;flex-direction:column;align-items:center;
-}
-
-.footer-menu i{font-size:18px;}
-
-/* CANVAS */
-canvas{
-position:fixed;top:0;left:0;
-width:100%;height:100%;
-pointer-events:none;
+.footer-menu span{
+font-size:14px;
 }
 </style>
-
-<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
 </head>
 
 <body>
 
 <canvas id="three"></canvas>
 
-<!-- NAVBAR -->
-<div class="navbar">
-<a href="#"><i class="fa fa-home"></i> Home</a>
-<a href="#"><i class="fa fa-mobile"></i> Mobile</a>
-<a href="#"><i class="fa fa-tablet"></i> Tablet</a>
-<a href="#"><i class="fa fa-laptop"></i> Laptop</a>
-<a href="#"><i class="fa fa-user"></i></a>
-</div>
-
-<!-- HERO -->
 <div class="hero">
-<div class="hero-box">
+<div class="box">
+<h1>Earn Real Money Daily</h1>
+<p>Watch ads • Complete tasks • Earn rewards instantly</p>
 
-<h1>Earn Real Money Everyday</h1>
-
-<p>Watch ads • Complete tasks • Convert coins to AED</p>
-
-<button class="start-btn" onclick="window.location.href='/login.html'">
+<button class="btn" onclick="window.location.href='login.html'">
 Start Earning →
 </button>
 
+<p style="margin-top:20px;font-size:14px;">
+✅ No Investment • 100% Free Platform
+</p>
 </div>
 </div>
 
-<!-- FOOTER -->
 <footer>
 <div class="footer-menu">
-<a href="#"><i class="fa fa-circle-info"></i>About</a>
-<a href="#"><i class="fa fa-shield"></i>Privacy</a>
-<a href="#"><i class="fa fa-headset"></i>Support</a>
-<a href="#"><i class="fa fa-envelope"></i>Contact</a>
+<span>About</span>
+<span>Privacy</span>
+<span>Support</span>
+<span>Contact</span>
 </div>
 ⚡ Secure • Fast • Trusted earning platform
 </footer>
 
 <script>
-/* SAME PARTICLE SYSTEM AS HOME */
+/* SAME PARTICLES AS HOME */
 const scene=new THREE.Scene();
 const camera=new THREE.PerspectiveCamera(75,innerWidth/innerHeight,0.1,1000);
 const renderer=new THREE.WebGLRenderer({canvas:document.getElementById("three"),alpha:true});
