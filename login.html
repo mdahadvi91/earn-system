@@ -219,43 +219,54 @@ text.style.color="orange";
 }
 }
 
-/* 🔐 FIREBASE CONFIG (CHANGE THIS) */
+/* 🔐 FIREBASE */
 const firebaseConfig = {
   apiKey: "AIzaSyDWvXsFqeeSxaWj0ySZXlxGwW0RlUGnVAg",
   authDomain: "hridoy-web-c06d2.firebaseapp.com",
-  databaseURL: "https://hridoy-web-c06d2-default-rtdb.firebaseio.com",
   projectId: "hridoy-web-c06d2",
-  storageBucket: "hridoy-web-c06d2.firebasestorage.app",
-  messagingSenderId: "323558167500",
-  appId: "1:323558167500:web:ca12c94f89480a2bfec369",
-  measurementId: "G-C4BXDNBLHY"
+  appId: "1:323558167500:web:ca12c94f89480a2bfec369"
 };
 
 firebase.initializeApp(firebaseConfig);
 const auth = firebase.auth();
 
+/* DEVICE ID */
+function getDeviceId(){
+return navigator.userAgent + navigator.platform;
+}
+
 /* LOGIN */
-function login(){
-let email=document.getElementById("loginEmail").value;
-let pass=document.getElementById("loginPass").value;
+async function login(){
+let email=document.getElementById("loginEmail").value.trim();
+let pass=document.getElementById("loginPass").value.trim();
 
 if(!email || !pass){
 alert("Fill all fields ❌");
 return;
 }
 
-auth.signInWithEmailAndPassword(email,pass)
-.then(()=>{
-window.location.href="home.html";
+try{
+const userCred = await auth.signInWithEmailAndPassword(email,pass);
+
+await fetch("/api/user",{
+method:"POST",
+headers:{"Content-Type":"application/json"},
+body:JSON.stringify({
+userId:userCred.user.uid,
+deviceId:getDeviceId()
 })
-.catch(e=>{
-alert(e.message);
 });
+
+window.location.href="home.html";
+
+}catch(e){
+alert(e.message);
+}
 }
 
 /* REGISTER */
-function register(){
-let email=document.getElementById("signupEmail").value;
+async function register(){
+let email=document.getElementById("signupEmail").value.trim();
 let pass=document.getElementById("pass").value;
 let cpass=document.getElementById("cpass").value;
 
@@ -264,43 +275,66 @@ alert("Password not match ❌");
 return;
 }
 
-auth.createUserWithEmailAndPassword(email,pass)
-.then(()=>{
-alert("Account created ✅");
-showLogin();
+try{
+const userCred = await auth.createUserWithEmailAndPassword(email,pass);
+
+await fetch("/api/user",{
+method:"POST",
+headers:{"Content-Type":"application/json"},
+body:JSON.stringify({
+userId:userCred.user.uid,
+deviceId:getDeviceId()
 })
-.catch(e=>{
-alert(e.message);
 });
+
+window.location.href="home.html";
+
+}catch(e){
+alert(e.message);
+}
 }
 
-/* THREE BG */
-const scene=new THREE.Scene();
-const camera=new THREE.PerspectiveCamera(75,innerWidth/innerHeight,0.1,1000);
-const renderer=new THREE.WebGLRenderer({canvas:document.getElementById("bg"),alpha:true});
-renderer.setSize(innerWidth,innerHeight);
+/* GOOGLE LOGIN */
+async function googleLogin(){
+const provider = new firebase.auth.GoogleAuthProvider();
 
-const geo=new THREE.BufferGeometry();
-const count=800;
-const pos=new Float32Array(count*3);
+try{
+const result = await auth.signInWithPopup(provider);
 
-for(let i=0;i<count*3;i++){
-pos[i]=(Math.random()-0.5)*10;
+await fetch("/api/user",{
+method:"POST",
+headers:{"Content-Type":"application/json"},
+body:JSON.stringify({
+userId:result.user.uid,
+deviceId:getDeviceId()
+})
+});
+
+window.location.href="home.html";
+
+}catch(e){
+alert(e.message);
+}
 }
 
-geo.setAttribute("position",new THREE.BufferAttribute(pos,3));
-const mat=new THREE.PointsMaterial({size:0.02,color:0x00ffff});
-const pts=new THREE.Points(geo,mat);
+/* AUTO LOGIN CHECK (VERY IMPORTANT) */
+auth.onAuthStateChanged(async user=>{
+if(user){
+try{
+await fetch("/api/user",{
+method:"POST",
+headers:{"Content-Type":"application/json"},
+body:JSON.stringify({
+userId:user.uid,
+deviceId:getDeviceId()
+})
+});
 
-scene.add(pts);
-camera.position.z=5;
+window.location.href="home.html";
 
-function anim(){
-requestAnimationFrame(anim);
-pts.rotation.y+=0.001;
-renderer.render(scene,camera);
+}catch{}
 }
-anim();
+});
 
 </script>
 
