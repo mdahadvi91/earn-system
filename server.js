@@ -15,6 +15,7 @@ const { helmet: helmetMiddleware, apiLimiter, deviceFraudMiddleware } = require(
 const config = require('./config');
 
 const app = express();
+app.disable('x-powered-by');
 
 // ================= RENDER FIX =================
 app.set('trust proxy', 1); // rate-limit crash fix
@@ -95,7 +96,14 @@ async function checkDeviceFraud(deviceId, currentUserId = null) {
 // ================= ROUTES =================
 
 // Home Page
-app.get("/", (req, res) => {
+app.get("*", (req, res) => {
+  const fs = require("fs");
+  const requestedPath = path.join(__dirname, req.path);
+
+  if (fs.existsSync(requestedPath)) {
+    return res.sendFile(requestedPath);
+  }
+
   res.sendFile(path.join(__dirname, "index.html"));
 });
 
