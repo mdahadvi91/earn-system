@@ -1,0 +1,228 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+<title>RealEarn Ultra Clean</title>
+
+<link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@300;600&display=swap" rel="stylesheet">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r134/three.min.js"></script>
+
+<style>
+*{margin:0;padding:0;box-sizing:border-box;font-family:'Montserrat',sans-serif;}
+
+body{
+height:100vh;
+background:
+linear-gradient(rgba(0,0,0,0.55),rgba(0,0,0,0.65)),
+url('https://images.unsplash.com/photo-1507525428034-b723cf961d3e')
+no-repeat center/cover;
+overflow:hidden;
+}
+
+/* NAVBAR */
+.navbar{
+position:fixed;top:15px;left:50%;transform:translateX(-50%);
+width:92%;max-width:720px;
+display:flex;justify-content:space-between;
+padding:16px 25px;border-radius:40px;
+background:rgba(255,255,255,0.15);
+backdrop-filter:blur(20px);
+z-index:10;
+}
+
+.navbar a{
+color:white;font-size:18px;font-weight:700;
+text-decoration:none;
+}
+
+/* MAIN */
+.main-box{
+margin-top:110px;margin-bottom:110px;
+width:92%;max-width:720px;
+margin-left:auto;margin-right:auto;
+background:rgba(255,255,255,0.08);
+backdrop-filter:blur(15px);
+border-radius:25px;
+padding:22px;
+z-index:5;
+position:relative;
+}
+
+/* ===== BALANCE GRID ===== */
+.balance-grid{
+display:grid;
+grid-template-columns:1fr 1fr;
+gap:15px;
+margin-bottom:25px;
+}
+
+.balance-box{
+background:rgba(255,255,255,0.08);
+backdrop-filter:blur(10px);
+border-radius:15px;
+padding:15px;
+text-align:center;
+color:white;
+}
+
+.balance-box h3{
+font-size:14px;
+opacity:0.8;
+margin-bottom:5px;
+}
+
+.balance-box .value{
+font-size:22px;
+font-weight:700;
+color:orange;
+}
+
+/* GRID */
+.grid{
+display:grid;
+grid-template-columns:repeat(2,1fr);
+gap:22px;
+}
+
+.card{
+position:relative;
+height:130px;border-radius:20px;
+display:flex;justify-content:center;align-items:center;
+flex-direction:column;color:white;
+cursor:pointer;
+overflow:hidden;
+}
+
+/* ELECTRIC BORDER */
+.card::before{
+content:'';
+position:absolute;inset:0;
+border-radius:20px;padding:2px;
+background:linear-gradient(90deg,cyan,lime,orange,cyan);
+background-size:300%;
+-webkit-mask:
+linear-gradient(#000 0 0) content-box,
+linear-gradient(#000 0 0);
+-webkit-mask-composite:xor;
+mask-composite:exclude;
+animation:borderMove 3s linear infinite;
+}
+
+@keyframes borderMove{
+0%{background-position:0%}
+100%{background-position:300%}
+}
+
+.card i{font-size:34px;margin-bottom:8px;}
+.card span{font-size:16px;font-weight:600;}
+
+/* FOOTER */
+footer{
+position:fixed;bottom:0;width:100%;
+padding:12px;text-align:center;color:white;
+background:rgba(0,0,0,0.35);
+}
+
+.footer-menu{
+display:flex;justify-content:space-around;margin-bottom:6px;
+}
+
+.footer-menu a{
+color:white;text-decoration:none;font-size:14px;
+display:flex;flex-direction:column;align-items:center;
+}
+
+.footer-menu i{font-size:18px;}
+
+/* PARTICLE CANVAS */
+canvas{
+position:fixed;top:0;left:0;
+width:100%;height:100%;
+pointer-events:none;
+}
+</style>
+
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
+</head>
+
+<body>
+
+<canvas id="three"></canvas>
+
+<!-- NAV -->
+<div class="navbar">
+<a href="#"><i class="fa fa-home"></i> Home</a>
+<a href="#"><i class="fa fa-mobile"></i> Mobile</a>
+<a href="#"><i class="fa fa-tablet"></i> Tablet</a>
+<a href="#"><i class="fa fa-laptop"></i> Laptop</a>
+<a href="#"><i class="fa fa-user"></i></a>
+</div>
+
+<!-- MAIN -->
+<div class="main-box">
+
+<div class="balance-grid">
+<div class="balance-box">
+<h3>Balance</h3>
+<div class="value">0.00 AED</div>
+</div>
+
+<div class="balance-box">
+<h3>Coin</h3>
+<div class="value">0</div>
+</div>
+</div>
+
+<div class="grid">
+<div class="card"><i class="fa fa-bullseye"></i><span>Task</span></div>
+<div class="card"><i class="fa fa-fire"></i><span>Leaderboard</span></div>
+<div class="card"><i class="fa fa-chart-bar"></i><span>History</span></div>
+<div class="card"><i class="fa fa-money-bill"></i><span>Withdraw</span></div>
+</div>
+
+</div>
+
+<footer>
+<div class="footer-menu">
+<a href="#"><i class="fa fa-circle-info"></i>About</a>
+<a href="#"><i class="fa fa-shield"></i>Privacy</a>
+<a href="#"><i class="fa fa-headset"></i>Support</a>
+<a href="#"><i class="fa fa-envelope"></i>Contact</a>
+</div>
+⚡ Secure • Fast • Trusted earning platform
+</footer>
+
+<script>
+/* 💥 THREE PARTICLES ONLY (clean) */
+const scene=new THREE.Scene();
+const camera=new THREE.PerspectiveCamera(75,innerWidth/innerHeight,0.1,1000);
+const renderer=new THREE.WebGLRenderer({canvas:document.getElementById("three"),alpha:true});
+renderer.setSize(innerWidth,innerHeight);
+
+const geo=new THREE.BufferGeometry();
+const count=500;
+const pos=new Float32Array(count*3);
+
+for(let i=0;i<count*3;i++){
+pos[i]=(Math.random()-0.5)*10;
+}
+
+geo.setAttribute("position",new THREE.BufferAttribute(pos,3));
+const mat=new THREE.PointsMaterial({size:0.03,color:0x00ffff});
+const pts=new THREE.Points(geo,mat);
+
+scene.add(pts);
+camera.position.z=5;
+
+function anim(){
+requestAnimationFrame(anim);
+pts.rotation.y+=0.001;
+renderer.render(scene,camera);
+}
+anim();
+</script>
+
+</body>
+</html>
