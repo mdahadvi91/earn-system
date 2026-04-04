@@ -221,6 +221,34 @@ pts.rotation.y+=0.001;
 renderer.render(scene,camera);
 }
 anim();
+
+// ================= LOAD BALANCE & AUTH CHECK =================
+async function loadUserBalance() {
+  const user = firebase.auth().currentUser;
+  if (!user) return;
+
+  try {
+    const res = await fetch(`/api/user/${user.uid}`);
+    const data = await res.json();
+
+    if (data.success) {
+      document.querySelectorAll('.value')[0].textContent = data.balance.toFixed(2) + " AED";
+      document.querySelectorAll('.value')[1].textContent = Math.floor(data.totalEarned || 0);
+    }
+  } catch (e) {
+    console.log("Balance load failed", e);
+  }
+}
+
+window.onload = () => {
+  firebase.auth().onAuthStateChanged((user) => {
+    if (user) {
+      loadUserBalance();
+    } else {
+      window.location.href = "/login";
+    }
+  });
+};
 </script>
 
 </body>
