@@ -1,310 +1,271 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>RealEarn - Login</title>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
 
-  <!-- Firebase SDK -->
-  <script src="https://www.gstatic.com/firebasejs/10.14.1/firebase-app-compat.js"></script>
-  <script src="https://www.gstatic.com/firebasejs/10.14.1/firebase-auth-compat.js"></script>
+<title>RealEarn Auth</title>
 
-  <style>
-    @import url('https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700&display=swap');
+<!-- ICON -->
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
 
-    * { margin: 0; padding: 0; box-sizing: border-box; }
-    body {
-      font-family: 'Poppins', sans-serif;
-      background: #0f0f0f;
-      min-height: 100vh;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-    }
+<!-- THREE -->
+<script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r134/three.min.js"></script>
 
-    .card {
-      width: 100%;
-      max-width: 420px;
-      background: #1a1a1a;
-      border-radius: 20px;
-      overflow: hidden;
-      box-shadow: 0 20px 40px rgba(0,0,0,0.6);
-      position: relative;
-    }
+<style>
+*{margin:0;padding:0;box-sizing:border-box;font-family:'Poppins',sans-serif;}
 
-    .glow {
-      position: absolute;
-      top: 0; left: 0; right: 0; bottom: 0;
-      background: linear-gradient(135deg, #ff4d00, #ffaa00);
-      opacity: 0.15;
-      z-index: 1;
-    }
+body{
+height:100vh;
+overflow:hidden;
+background:
+linear-gradient(rgba(0,0,0,0.6),rgba(0,0,0,0.7)),
+url('https://images.unsplash.com/photo-1507525428034-b723cf961d3e')
+no-repeat center/cover;
+}
 
-    .content {
-      position: relative;
-      z-index: 2;
-      padding: 40px 30px;
-    }
+/* BG */
+canvas{
+position:fixed;
+top:0;left:0;
+width:100%;height:100%;
+z-index:0;
+}
 
-    h1 { color: white; font-size: 28px; margin-bottom: 8px; }
-    p { color: #aaa; font-size: 15px; margin-bottom: 30px; }
+/* CENTER */
+.wrap{
+height:100%;
+display:flex;
+align-items:center;
+justify-content:center;
+position:relative;
+z-index:2;
+}
 
-    .forms-container {
-      position: relative;
-      height: 420px;
-    }
+/* BOX */
+.box{
+width:420px;
+max-width:95%;
+background:rgba(0,0,0,0.55);
+backdrop-filter:blur(20px);
+border-radius:20px;
+padding:30px;
+color:white;
+}
 
-    .form {
-      position: absolute;
-      width: 100%;
-      transition: all 0.8s cubic-bezier(0.68, -0.55, 0.27, 1.55);
-      opacity: 0;
-      transform: translateX(120%);
-    }
+/* FORMS */
+.form{display:none;}
+.form.active{display:block;}
 
-    .form.active {
-      opacity: 1;
-      transform: translateX(0);
-    }
+/* INPUT */
+input{
+width:100%;
+padding:14px;
+margin:10px 0;
+border:none;
+border-radius:10px;
+background:rgba(0,0,0,0.7);
+color:white;
+}
 
-    input {
-      width: 100%;
-      padding: 16px 18px;
-      margin: 12px 0;
-      background: #2a2a2a;
-      border: none;
-      border-radius: 12px;
-      color: white;
-      font-size: 15px;
-    }
-    input::placeholder { color: #777; }
+/* BUTTON */
+button{
+width:100%;
+padding:14px;
+border:none;
+border-radius:10px;
+margin-top:10px;
+cursor:pointer;
+font-weight:600;
+}
 
-    .btn {
-      width: 100%;
-      padding: 16px;
-      border: none;
-      border-radius: 12px;
-      font-size: 16px;
-      font-weight: 600;
-      margin: 12px 0;
-      cursor: pointer;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      gap: 10px;
-    }
-    .btn-primary {
-      background: linear-gradient(90deg, #ff4d00, #ff8800);
-      color: white;
-    }
-    .btn-google {
-      background: #fff;
-      color: #333;
-    }
+.btn-main{
+background:linear-gradient(90deg,#00c6ff,#0072ff);
+color:white;
+}
 
-    .switch-text {
-      text-align: center;
-      margin-top: 15px;
-      color: #aaa;
-    }
-    .switch-text span {
-      color: #ff8800;
-      cursor: pointer;
-      font-weight: 500;
-    }
+.btn-google{
+background:white;
+color:black;
+}
 
-    .loader {
-      position: fixed;
-      top: 0; left: 0; right: 0; bottom: 0;
-      background: rgba(0,0,0,0.97);
-      display: none;
-      flex-direction: column;
-      align-items: center;
-      justify-content: center;
-      z-index: 9999;
-    }
-    .circle {
-      width: 120px; height: 120px;
-      border: 10px solid #333;
-      border-top: 10px solid #ff8800;
-      border-radius: 50%;
-      animation: spin 1.2s linear infinite;
-    }
-    .percent {
-      margin-top: 20px;
-      font-size: 42px;
-      font-weight: 700;
-      color: #ff8800;
-    }
-  </style>
+/* SWITCH TEXT */
+.switch{
+text-align:center;
+margin-top:10px;
+font-size:13px;
+}
+
+.switch span{
+color:#00c6ff;
+cursor:pointer;
+}
+
+/* FOOTER */
+footer{
+position:fixed;
+bottom:0;
+width:100%;
+padding:10px;
+background:rgba(0,0,0,0.35);
+backdrop-filter:blur(10px);
+color:white;
+text-align:center;
+}
+
+.footer-menu{
+display:flex;
+justify-content:space-around;
+margin-bottom:5px;
+}
+
+.footer-menu a{
+color:white;
+text-decoration:none;
+font-size:12px;
+display:flex;
+flex-direction:column;
+align-items:center;
+}
+
+.footer-menu i{
+font-size:16px;
+}
+</style>
 </head>
+
 <body>
 
-  <div class="card">
-    <div class="glow"></div>
-    <div class="content">
+<canvas id="bg"></canvas>
 
-      <h1 id="title">Welcome Back!</h1>
-      <p id="subtitle">Sign in to continue earning real money</p>
+<div class="wrap">
+<div class="box">
 
-      <div class="forms-container">
+<!-- LOGIN -->
+<div id="login" class="form active">
+<h2>Welcome Back!</h2>
+<p>Login to continue</p>
 
-        <!-- Login Form -->
-        <div class="form active" id="loginForm">
-          <input type="text" id="loginUser" placeholder="Username or Email">
-          <input type="password" id="loginPass" placeholder="Password">
-          <button class="btn btn-primary" onclick="handleEmailLogin()">Login</button>
-          
-          <button class="btn btn-google" onclick="signInWithGoogle('login')">
-            <span style="font-size:22px;">G</span> Continue with Google
-          </button>
+<input type="text" placeholder="Username or Email">
+<input type="password" placeholder="Password">
 
-          <div class="switch-text">
-            Don't have an account? <span onclick="switchForm(1)">Sign Up</span>
-          </div>
-        </div>
+<button class="btn-main">Login</button>
+<button class="btn-google">Continue with Google</button>
 
-        <!-- Register Form -->
-        <div class="form" id="registerForm">
-          <input type="text" id="regName" placeholder="Full Name">
-          <input type="email" id="regEmail" placeholder="Email">
-          <input type="password" id="regPass" placeholder="Password">
-          <button class="btn btn-primary" onclick="handleEmailRegister()">Register</button>
-          
-          <button class="btn btn-google" onclick="signInWithGoogle('register')">
-            <span style="font-size:22px;">G</span> Continue with Google
-          </button>
+<div class="switch">
+No account? <span onclick="showSignup()">Sign Up</span>
+</div>
+</div>
 
-          <div class="switch-text">
-            Already have an account? <span onclick="switchForm(0)">Sign In</span>
-          </div>
-        </div>
+<!-- SIGNUP -->
+<div id="signup" class="form">
+<h2>Create Account</h2>
+<p>Start earning today</p>
 
-      </div>
-    </div>
+<input type="text" placeholder="Name">
+<input type="email" placeholder="Email">
+
+<input type="password" id="pass" placeholder="Password" oninput="checkStrength()">
+<div id="strength" style="font-size:12px;"></div>
+
+<input type="password" id="cpass" placeholder="Confirm Password">
+
+<button class="btn-main" onclick="register()">Sign Up</button>
+<button class="btn-google">Continue with Google</button>
+
+<div class="switch">
+Have account? <span onclick="showLogin()">Login</span>
+</div>
+</div>
+
+</div>
+</div>
+
+<!-- FOOTER -->
+<footer>
+  <div class="footer-menu">
+    <a href="#"><i class="fa fa-circle-info"></i><span>About</span></a>
+    <a href="#"><i class="fa fa-shield"></i><span>Privacy</span></a>
+    <a href="#"><i class="fa fa-headset"></i><span>Support</span></a>
+    <a href="#"><i class="fa fa-envelope"></i><span>Contact</span></a>
   </div>
+  ⚡ Secure • Fast • Trusted earning platform
+</footer>
 
-  <!-- Loader -->
-  <div class="loader" id="loader">
-    <div class="circle"></div>
-    <div class="percent" id="percentText">0%</div>
-    <p style="color:#888; margin-top:10px;">VERIFYING YOUR ACCOUNT...</p>
-  </div>
+<script>
 
-  <script>
-    // ================== FIREBASE CONFIG ==================
-    const firebaseConfig = {
-      apiKey: "AIzaSyCvhGuyx6ZSrimCjk2G2Q9pdoihvjb3Hms",
-      authDomain: "realearn-app.firebaseapp.com",
-      projectId: "realearn-app",
-      storageBucket: "realearn-app.firebasestorage.app",
-      messagingSenderId: "241034846565",
-      appId: "1:241034846565:web:26f6da801689f429f9018c",
-      measurementId: "G-WPH8TW221C"
-    };
+/* SWITCH */
+function showSignup(){
+document.getElementById("login").classList.remove("active");
+document.getElementById("signup").classList.add("active");
+}
 
-    // Initialize Firebase
-    firebase.initializeApp(firebaseConfig);
-    const auth = firebase.auth();
+function showLogin(){
+document.getElementById("signup").classList.remove("active");
+document.getElementById("login").classList.add("active");
+}
 
-    let currentForm = 'login';
+/* PASSWORD */
+function checkStrength(){
+let val=document.getElementById("pass").value;
+let text=document.getElementById("strength");
 
-    function switchForm(toRegister) {
-      currentForm = toRegister ? 'register' : 'login';
-      const loginForm = document.getElementById('loginForm');
-      const registerForm = document.getElementById('registerForm');
-      const title = document.getElementById('title');
-      const subtitle = document.getElementById('subtitle');
+if(val.length<6){
+text.innerHTML="Weak 🔴";
+text.style.color="red";
+}
+else if(val.match(/[A-Z]/) && val.match(/[0-9]/)){
+text.innerHTML="Strong 🟢";
+text.style.color="lime";
+}
+else{
+text.innerHTML="Medium 🟡";
+text.style.color="orange";
+}
+}
 
-      if (toRegister) {
-        loginForm.classList.remove('active');
-        registerForm.classList.add('active');
-        title.textContent = "Create Account";
-        subtitle.textContent = "Join thousands earning daily";
-      } else {
-        registerForm.classList.remove('active');
-        loginForm.classList.add('active');
-        title.textContent = "Welcome Back!";
-        subtitle.textContent = "Sign in to continue earning real money";
-      }
-    }
+/* REGISTER */
+function register(){
+let pass=document.getElementById("pass").value;
+let cpass=document.getElementById("cpass").value;
 
-    async function handleEmailLogin() {
-      const email = document.getElementById('loginUser').value.trim();
-      const pass = document.getElementById('loginPass').value.trim();
-      if (!email || !pass) return alert("Please fill all fields");
+if(pass!==cpass){
+alert("Password not match ❌");
+return;
+}
 
-      try {
-        await auth.signInWithEmailAndPassword(email, pass);
-        showLoaderAndRedirect();
-      } catch (error) {
-        alert("Login failed: " + error.message);
-      }
-    }
+alert("Account Ready ✅");
+}
 
-    async function handleEmailRegister() {
-      const name = document.getElementById('regName').value.trim();
-      const email = document.getElementById('regEmail').value.trim();
-      const pass = document.getElementById('regPass').value.trim();
-      if (!name || !email || !pass) return alert("Please fill all fields");
+/* THREE BG */
+const scene=new THREE.Scene();
+const camera=new THREE.PerspectiveCamera(75,innerWidth/innerHeight,0.1,1000);
+const renderer=new THREE.WebGLRenderer({canvas:document.getElementById("bg"),alpha:true});
+renderer.setSize(innerWidth,innerHeight);
 
-      try {
-        await auth.createUserWithEmailAndPassword(email, pass);
-        showLoaderAndRedirect();
-      } catch (error) {
-        alert("Registration failed: " + error.message);
-      }
-    }
+const geo=new THREE.BufferGeometry();
+const count=800;
+const pos=new Float32Array(count*3);
 
-    async function signInWithGoogle(formType) {
-      const provider = new firebase.auth.GoogleAuthProvider();
+for(let i=0;i<count*3;i++){
+pos[i]=(Math.random()-0.5)*10;
+}
 
-      try {
-        const result = await auth.signInWithPopup(provider);
-        const isNewUser = result.additionalUserInfo.isNewUser;
+geo.setAttribute("position",new THREE.BufferAttribute(pos,3));
+const mat=new THREE.PointsMaterial({size:0.02,color:0x00ffff});
+const pts=new THREE.Points(geo,mat);
 
-        if (formType === 'login' && isNewUser) {
-          await auth.signOut();
-          alert("No account found!\nPlease Sign Up first.");
-          switchForm(1);
-          return;
-        }
+scene.add(pts);
+camera.position.z=5;
 
-        console.log("✅ Google Sign In Successful", result.user);
-        showLoaderAndRedirect();
+function anim(){
+requestAnimationFrame(anim);
+pts.rotation.y+=0.001;
+renderer.render(scene,camera);
+}
+anim();
 
-      } catch (error) {
-        console.error(error);
-        alert("Google Sign In failed: " + error.message);
-      }
-    }
+</script>
 
-    // ================== LOADER + REDIRECT ==================
-    function showLoaderAndRedirect() {
-      document.querySelector('.card').style.opacity = "0.3";
-      const loader = document.getElementById('loader');
-      loader.style.display = "flex";
-
-      let percent = 0;
-      const percentText = document.getElementById('percentText');
-
-      const interval = setInterval(() => {
-        percent += Math.random() * 15 + 8;
-        if (percent > 100) percent = 100;
-        percentText.textContent = Math.floor(percent) + "%";
-
-        if (percent >= 100) {
-          clearInterval(interval);
-          setTimeout(() => {
-            window.location.href = "/index.html";   // Root-এ ফিরে যাবে
-          }, 700);
-        }
-      }, 80);
-    }
-
-    auth.onAuthStateChanged(user => {
-      if (user) console.log("User already logged in:", user.email);
-    });
-  </script>
 </body>
 </html>
