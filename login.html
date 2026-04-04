@@ -265,9 +265,9 @@ return;
 }
 
 auth.signInWithEmailAndPassword(email,pass)
-.then(async (res)=>{
-  await syncUser(res.user);   // 🔥 backend connect
-  window.location.href="home.html";
+.then(async (res) => {
+  await syncUser(res.user);
+  window.location.href = "/home";
 })
 .catch(e=>{
 alert(e.message);
@@ -300,9 +300,9 @@ function googleLogin(){
 const provider = new firebase.auth.GoogleAuthProvider();
 
 auth.signInWithPopup(provider)
-.then(async (res)=>{
-  await syncUser(res.user);   // 🔥 backend connect
-  window.location.href="home.html";
+.then(async (res) => {
+  await syncUser(res.user);
+  window.location.href = "/home";
 })
 .catch(e=>{
 alert(e.message);
@@ -310,11 +310,11 @@ alert(e.message);
 }
 
 /* AUTO LOGIN CHECK */
-auth.onAuthStateChanged(async (user)=>{
-if(user){
-  await syncUser(user);
-  window.location.href="home.html";
-}
+auth.onAuthStateChanged(async (user) => {
+  if (user) {
+    await syncUser(user);
+    window.location.href = "/home";
+  }
 });
 
 /* THREE BG (unchanged) */
