@@ -345,6 +345,17 @@ renderer.render(scene,camera);
 }
 anim();
 
+  auth.getRedirectResult()
+.then(async (result) => {
+  if (result.user) {
+    await syncUser(result.user);
+    window.location.href = "/home";
+  }
+})
+.catch((error) => {
+  console.log(error);
+});
+
 </script>
 
 </body>
