@@ -217,16 +217,16 @@ text.style.color="orange";
 }
 }
 
-/* FIREBASE INIT */
+// For Firebase JS SDK v7.20.0 and later, measurementId is optional
 const firebaseConfig = {
-  apiKey: "AIzaSyDWvXsFqeeSxaWj0ySZXlxGwW0RlUGnVAg",
-  authDomain: "hridoy-web-c06d2.firebaseapp.com",
-  projectId: "hridoy-web-c06d2",
-  appId: "1:323558167500:web:ca12c94f89480a2bfec369"
+  apiKey: "AIzaSyCvhGuyx6ZSrimCjk2G2Q9pdoihvjb3Hms",
+  authDomain: "realearn-app.firebaseapp.com",
+  projectId: "realearn-app",
+  storageBucket: "realearn-app.firebasestorage.app",
+  messagingSenderId: "241034846565",
+  appId: "1:241034846565:web:26f6da801689f429f9018c",
+  measurementId: "G-WPH8TW221C"
 };
-
-firebase.initializeApp(firebaseConfig);
-const auth = firebase.auth();
 
 /* DEVICE ID (ANTI FRAUD) */
 function getDeviceId(){
