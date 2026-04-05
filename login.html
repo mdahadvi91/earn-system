@@ -299,7 +299,7 @@ alert(e.message);
 function googleLogin(){
 const provider = new firebase.auth.GoogleAuthProvider();
 
-auth.signInWithPopup(provider)
+auth.signInWithRedirect(provider)
 .then(async (res) => {
   await syncUser(res.user);
   window.location.href = "/home";
